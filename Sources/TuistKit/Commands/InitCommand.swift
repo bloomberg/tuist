@@ -1,5 +1,6 @@
 import Basic
 import Foundation
+import ProjectDescription
 import TuistCore
 import Utility
 
@@ -129,10 +130,10 @@ class InitCommand: NSObject, Command {
         }
     }
 
-    fileprivate func generateProjectSwift(name: String, platform: Platform, product: Product, path: AbsolutePath) throws {
+    fileprivate func generateProjectSwift(name: String, platform: ProjectDescription.Platform, product: Product, path: AbsolutePath) throws {
         let content = """
         import ProjectDescription
-        
+
         let project = Project(name: "\(name)",
                               up: [
                                 /* Configures the environment for the project */
@@ -163,7 +164,7 @@ class InitCommand: NSObject, Command {
         try content.write(to: path.appending(component: "Project.swift").url, atomically: true, encoding: .utf8)
     }
 
-    fileprivate func generatePlists(platform: Platform, product: Product, path: AbsolutePath) throws {
+    fileprivate func generatePlists(platform: ProjectDescription.Platform, product: Product, path: AbsolutePath) throws {
         try infoplistProvisioner.generate(path: path.appending(component: "Info.plist"),
                                           platform: platform,
                                           product: product)
@@ -242,7 +243,7 @@ class InitCommand: NSObject, Command {
         try content.write(to: path.url, atomically: true, encoding: .utf8)
     }
 
-    fileprivate func generateSources(name: String, platform: Platform, product: Product, path: AbsolutePath) throws {
+    fileprivate func generateSources(name: String, platform: ProjectDescription.Platform, product: Product, path: AbsolutePath) throws {
         let path = path.appending(component: "Sources")
 
         if fileHandler.exists(path) {
@@ -257,20 +258,20 @@ class InitCommand: NSObject, Command {
             filename = "AppDelegate.swift"
             content = """
             import Cocoa
-            
+
             @NSApplicationMain
             class AppDelegate: NSObject, NSApplicationDelegate {
-            
+
                 @IBOutlet weak var window: NSWindow!
-            
+
                 func applicationDidFinishLaunching(_ aNotification: Notification) {
                     // Insert code here to initialize your application
                 }
-            
+
                 func applicationWillTerminate(_ aNotification: Notification) {
                     // Insert code here to tear down your application
                 }
-            
+
             }
             """
         } else if [.iOS, .tvOS].contains(platform), product == .app {
@@ -278,10 +279,10 @@ class InitCommand: NSObject, Command {
 
             content = """
             import UIKit
-            
+
             @UIApplicationMain
             class AppDelegate: UIResponder, UIApplicationDelegate {
-            
+
                 var window: UIWindow?
             
                 func application(_ application: UIApplication,
@@ -293,16 +294,16 @@ class InitCommand: NSObject, Command {
                     window?.makeKeyAndVisible()
                     return true
                 }
-            
+
             }
             """
         } else {
             filename = "\(name).swift"
             content = """
             import Foundation
-            
+
             class \(name) {
-            
+
             }
             """
         }
@@ -321,17 +322,17 @@ class InitCommand: NSObject, Command {
         let content = """
         import Foundation
         import XCTest
-        
+
         @testable import \(name)
 
         final class \(name)Tests: XCTestCase {
-        
+
         }
         """
         try content.write(to: path.appending(component: "\(name)Tests.swift").url, atomically: true, encoding: .utf8)
     }
 
-    fileprivate func generatePlaygrounds(name: String, path: AbsolutePath, platform: Platform) throws {
+    fileprivate func generatePlaygrounds(name: String, path: AbsolutePath, platform: ProjectDescription.Platform) throws {
         let playgroundsPath = path.appending(component: "Playgrounds")
         try fileHandler.createFolder(playgroundsPath)
         try playgroundGenerator.generate(path: playgroundsPath,
@@ -371,7 +372,7 @@ class InitCommand: NSObject, Command {
         }
     }
 
-    fileprivate func platform(arguments: ArgumentParser.Result) throws -> Platform {
+    fileprivate func platform(arguments: ArgumentParser.Result) throws -> ProjectDescription.Platform {
         if let platformString = arguments.get(self.platformArgument) {
             if let platform = Platform(rawValue: platformString) {
                 return platform

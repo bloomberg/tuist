@@ -10,6 +10,22 @@ public enum Product: String, Codable {
     case unitTests = "unit_tests"
     case uiTests = "ui_tests"
 
+    public var caseValue: String {
+        switch self {
+        case .app:
+            return "app"
+        case .staticLibrary:
+            return "staticLibrary"
+        case .dynamicLibrary:
+            return "dynamicLibrary"
+        case .framework:
+            return "framework"
+        case .unitTests:
+            return "unitTests"
+        case .uiTests:
+            return "uiTests"
+        }
+    }
     // Not supported yet
 //    case appExtension
 //    case watchApp

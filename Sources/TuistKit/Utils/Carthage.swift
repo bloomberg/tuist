@@ -1,5 +1,6 @@
 import Basic
 import Foundation
+import ProjectDescription
 import TuistCore
 
 /// Model that represents the content of the file that Carthage

@@ -1,49 +1,61 @@
 import Basic
 import Foundation
 import TuistCore
+import TuistGenerator
 import Utility
 
 class GenerateCommand: NSObject, Command {
     // MARK: - Static
 
+    /// Command name that is used for the CLI.
     static let command = "generate"
+
+    /// Command description that is shown when using help from the CLI.
     static let overview = "Generates an Xcode workspace to start working on the project."
 
     // MARK: - Attributes
 
-    fileprivate let graphLoader: GraphLoading
-    fileprivate let workspaceGenerator: WorkspaceGenerating
+    /// Generator instance handling generation process.
+    fileprivate let generator: Generating
+
+    /// Printer instance to output updates during the process.
     fileprivate let printer: Printing
-    fileprivate let system: Systeming
-    fileprivate let resourceLocator: ResourceLocating
+
+    /// ManifestLoader instance to parse Project.swift or Workspace.swift files.
+    fileprivate let manifestLoader: ManifestLoading
 
     let pathArgument: OptionArgument<String>
 
     // MARK: - Init
 
     required convenience init(parser: ArgumentParser) {
-        let system = System()
         let printer = Printer()
-        self.init(graphLoader: GraphLoader(),
-                  workspaceGenerator: WorkspaceGenerator(),
-                  parser: parser,
+        let system = System()
+        let fileHandler = FileHandler()
+        let resourceLocator = ResourceLocator(fileHandler: fileHandler)
+        let deprecator = Deprecator(printer: printer)
+        let manifestLoader = ManifestLoader(fileHandler: fileHandler,
+                                            system: system,
+                                            resourceLocator: resourceLocator,
+                                            deprecator: deprecator)
+        let generator = GeneratorFactory.create(printer: printer,
+                                                system: system,
+                                                fileHandler: fileHandler)
+        self.init(parser: parser,
                   printer: printer,
-                  system: system,
-                  resourceLocator: ResourceLocator())
+                  manifestLoader: manifestLoader,
+                  generator: generator)
     }
 
-    init(graphLoader: GraphLoading,
-         workspaceGenerator: WorkspaceGenerating,
-         parser: ArgumentParser,
+    init(parser: ArgumentParser,
          printer: Printing,
-         system: Systeming,
-         resourceLocator: ResourceLocating) {
-        let subParser = parser.add(subparser: GenerateCommand.command, overview: GenerateCommand.overview)
-        self.graphLoader = graphLoader
-        self.workspaceGenerator = workspaceGenerator
+         manifestLoader: ManifestLoading,
+         generator: Generating) {
+        let subParser = parser.add(subparser: GenerateCommand.command,
+                                   overview: GenerateCommand.overview)
         self.printer = printer
-        self.system = system
-        self.resourceLocator = resourceLocator
+        self.manifestLoader = manifestLoader
+        self.generator = generator
         pathArgument = subParser.add(option: "--path",
                                      shortName: "-p",
                                      kind: String.self,
@@ -53,12 +65,14 @@ class GenerateCommand: NSObject, Command {
 
     func run(with arguments: ArgumentParser.Result) throws {
         let path = self.path(arguments: arguments)
-        let graph = try graphLoader.load(path: path)
-        try workspaceGenerator.generate(path: path,
-                                        graph: graph,
-                                        options: GenerationOptions(),
-                                        directory: .manifest)
-
+        let manifests = manifestLoader.manifests(at: path)
+        if manifests.contains(.workspace) {
+            try generator.generateWorkspace(at: path)
+        } else if manifests.contains(.project) {
+            try generator.generateProject(at: path)
+        } else {
+            throw ManifestLoaderError.manifestNotFound(nil, path)
+        }
         printer.print(success: "Project generated.")
     }
 

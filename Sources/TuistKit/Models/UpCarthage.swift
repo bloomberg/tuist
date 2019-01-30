@@ -1,9 +1,10 @@
 import Basic
 import Foundation
+import ProjectDescription
 import TuistCore
 
 /// Up that updates outdated Carthage dependencies.
-class UpCarthage: Up, GraphInitiatable {
+class UpCarthage: Up {
     /// The platforms Carthage dependencies should be updated for.
     let platforms: [Platform]
 

@@ -10,8 +10,8 @@ import XCTest
 final class GenerateCommandTests: XCTestCase {
     var subject: GenerateCommand!
     var errorHandler: MockErrorHandler!
-    var graphLoader: MockGraphLoader!
-    var workspaceGenerator: MockWorkspaceGenerator!
+    var manifestLoader: MockManifestLoader!
+    var generator: MockGenerator!
     var parser: ArgumentParser!
     var printer: MockPrinter!
     var resourceLocator: ResourceLocator!
@@ -20,17 +20,14 @@ final class GenerateCommandTests: XCTestCase {
         super.setUp()
         printer = MockPrinter()
         errorHandler = MockErrorHandler()
-        graphLoader = MockGraphLoader()
-        workspaceGenerator = MockWorkspaceGenerator()
+        generator = MockGenerator()
         parser = ArgumentParser.test()
         resourceLocator = ResourceLocator()
-
-        subject = GenerateCommand(graphLoader: graphLoader,
-                                  workspaceGenerator: workspaceGenerator,
-                                  parser: parser,
+        manifestLoader = MockManifestLoader()
+        subject = GenerateCommand(parser: parser,
                                   printer: printer,
-                                  system: System(),
-                                  resourceLocator: resourceLocator)
+                                  manifestLoader: manifestLoader,
+                                  generator: generator)
     }
 
     func test_command() {
@@ -44,7 +41,10 @@ final class GenerateCommandTests: XCTestCase {
     func test_run_fatalErrors_when_theworkspaceGenerationFails() throws {
         let result = try parser.parse([GenerateCommand.command])
         let error = NSError.test()
-        workspaceGenerator.generateStub = { _, _, _, _ in
+        manifestLoader.manifestsAtStub = { _ in
+            return Set([.workspace])
+        }
+        generator.generateWorkspaceStub = { _, _ -> AbsolutePath in
             throw error
         }
         XCTAssertThrowsError(try subject.run(with: result)) {
@@ -54,6 +54,9 @@ final class GenerateCommandTests: XCTestCase {
 
     func test_run_prints() throws {
         let result = try parser.parse([GenerateCommand.command])
+        manifestLoader.manifestsAtStub = { _ in
+            return Set([.project])
+        }
         try subject.run(with: result)
         XCTAssertEqual(printer.printSuccessArgs.first, "Project generated.")
     }

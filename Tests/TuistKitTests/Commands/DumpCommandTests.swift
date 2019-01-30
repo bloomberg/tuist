@@ -11,14 +11,14 @@ final class DumpCommandTests: XCTestCase {
     var fileHandler: MockFileHandler!
     var subject: DumpCommand!
     var parser: ArgumentParser!
-    var manifestLoading: GraphManifestLoading!
+    var manifestLoading: ManifestLoading!
 
     override func setUp() {
         printer = MockPrinter()
         errorHandler = MockErrorHandler()
         parser = ArgumentParser.test()
         fileHandler = try! MockFileHandler()
-        manifestLoading = GraphManifestLoader()
+        manifestLoading = ManifestLoader()
         subject = DumpCommand(fileHandler: fileHandler,
                               manifestLoader: manifestLoading,
                               printer: printer,
@@ -37,7 +37,7 @@ final class DumpCommandTests: XCTestCase {
         let tmpDir = try TemporaryDirectory(removeTreeOnDeinit: true)
         let result = try parser.parse([DumpCommand.command, "-p", tmpDir.path.asString])
         XCTAssertThrowsError(try subject.run(with: result)) {
-            XCTAssertEqual($0 as? GraphManifestLoaderError, GraphManifestLoaderError.manifestNotFound(.project, tmpDir.path))
+            XCTAssertEqual($0 as? ManifestLoaderError, ManifestLoaderError.manifestNotFound(.project, tmpDir.path))
         }
     }
 

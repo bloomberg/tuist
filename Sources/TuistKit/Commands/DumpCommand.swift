@@ -12,7 +12,7 @@ class DumpCommand: NSObject, Command {
     // MARK: - Attributes
 
     fileprivate let fileHandler: FileHandling
-    fileprivate let manifestLoader: GraphManifestLoading
+    fileprivate let manifestLoader: ManifestLoading
     fileprivate let printer: Printing
     let pathArgument: OptionArgument<String>
 
@@ -20,13 +20,13 @@ class DumpCommand: NSObject, Command {
 
     public required convenience init(parser: ArgumentParser) {
         self.init(fileHandler: FileHandler(),
-                  manifestLoader: GraphManifestLoader(),
+                  manifestLoader: ManifestLoader(),
                   printer: Printer(),
                   parser: parser)
     }
 
     init(fileHandler: FileHandling,
-         manifestLoader: GraphManifestLoading,
+         manifestLoader: ManifestLoading,
          printer: Printing,
          parser: ArgumentParser) {
         let subParser = parser.add(subparser: DumpCommand.command, overview: DumpCommand.overview)

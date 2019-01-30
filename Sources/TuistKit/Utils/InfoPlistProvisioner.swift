@@ -1,5 +1,6 @@
 import Basic
 import Foundation
+import ProjectDescription
 import TuistCore
 
 protocol InfoPlistProvisioning: AnyObject {

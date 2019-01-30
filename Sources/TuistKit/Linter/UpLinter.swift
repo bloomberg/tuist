@@ -1,4 +1,5 @@
 import Foundation
+import TuistGenerator
 
 /// Protocol that defines an interface to lint Up tasks
 protocol UpLinting {

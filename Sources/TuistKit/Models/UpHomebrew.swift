@@ -3,7 +3,7 @@ import Foundation
 import TuistCore
 
 /// Command that installs Homebrew and packages.
-class UpHomebrew: Up, GraphInitiatable {
+class UpHomebrew: Up {
     /// Homebrew packages to be installed.
     let packages: [String]
 

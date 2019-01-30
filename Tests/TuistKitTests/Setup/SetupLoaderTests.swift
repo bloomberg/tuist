@@ -2,6 +2,7 @@
 import XCTest
 import Basic
 @testable import TuistCoreTesting
+@testable import TuistGenerator
 
 final class SetupLoaderTests: XCTestCase {
 
@@ -9,7 +10,7 @@ final class SetupLoaderTests: XCTestCase {
     var upLinter: MockUpLinter!
     var fileHandler: MockFileHandler!
     var printer: MockPrinter!
-    var graphManifestLoader: MockGraphManifestLoader!
+    var manifestLoader: MockManifestLoader!
     var system: MockSystem!
 
     override func setUp() {
@@ -18,12 +19,12 @@ final class SetupLoaderTests: XCTestCase {
         upLinter = MockUpLinter()
         fileHandler = try! MockFileHandler()
         printer = MockPrinter()
-        graphManifestLoader = MockGraphManifestLoader()
+        manifestLoader = MockManifestLoader()
         system = MockSystem()
         subject = SetupLoader(upLinter: upLinter,
                               fileHandler: fileHandler,
                               printer: printer,
-                              graphManifestLoader: graphManifestLoader,
+                              manifestLoader: manifestLoader,
                               system: system)
     }
 
@@ -31,7 +32,7 @@ final class SetupLoaderTests: XCTestCase {
         // given
         let projectPath = AbsolutePath("/test/test1")
         var receivedPaths = [String]()
-        graphManifestLoader.loadSetupStub = { gotPath in
+        manifestLoader.loadSetupStub = { gotPath in
             receivedPaths.append(gotPath.asString)
             return []
         }
@@ -54,7 +55,7 @@ final class SetupLoaderTests: XCTestCase {
         mockUp2.isMetStub = { _, _ in return false }
         var lintedUps = [Upping]()
         upLinter.lintStub = { up in lintedUps.append(up); return [] }
-        graphManifestLoader.loadSetupStub = { _ in [mockUp1, mockUp2] }
+        manifestLoader.loadSetupStub = { _ in [mockUp1, mockUp2] }
 
         // when / then
         XCTAssertNoThrow(try subject.meet(at: projectPath))
@@ -72,11 +73,11 @@ final class SetupLoaderTests: XCTestCase {
     func test_meet_when_loadSetup_throws() {
         // given
         let projectPath = AbsolutePath("/test/test1")
-        graphManifestLoader.loadSetupStub = { path in throw GraphManifestLoaderError.setupNotFound(path) }
+        manifestLoader.loadSetupStub = { path in throw ManifestLoaderError.setupNotFound(path) }
 
         // when / then
         XCTAssertThrowsError(try subject.meet(at: projectPath)) { error in
-            XCTAssertEqual(error as? GraphManifestLoaderError, GraphManifestLoaderError.setupNotFound(projectPath))
+            XCTAssertEqual(error as? ManifestLoaderError, ManifestLoaderError.setupNotFound(projectPath))
         }
     }
 
@@ -106,7 +107,7 @@ final class SetupLoaderTests: XCTestCase {
             }
             return []
         }
-        graphManifestLoader.loadSetupStub = { _ in mockUps }
+        manifestLoader.loadSetupStub = { _ in mockUps }
 
         // when / then
         XCTAssertThrowsError(try subject.meet(at: projectPath)) { error in

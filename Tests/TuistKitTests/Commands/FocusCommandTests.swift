@@ -8,9 +8,7 @@ import XCTest
 
 final class FocusCommandTests: XCTestCase {
     var subject: FocusCommand!
-    var errorHandler: MockErrorHandler!
-    var graphLoader: MockGraphLoader!
-    var workspaceGenerator: MockWorkspaceGenerator!
+    var generator: MockGenerator!
     var parser: ArgumentParser!
     var printer: MockPrinter!
     var fileHandler: MockFileHandler!
@@ -21,9 +19,7 @@ final class FocusCommandTests: XCTestCase {
     override func setUp() {
         super.setUp()
         printer = MockPrinter()
-        errorHandler = MockErrorHandler()
-        graphLoader = MockGraphLoader()
-        workspaceGenerator = MockWorkspaceGenerator()
+        generator = MockGenerator()
         parser = ArgumentParser.test()
         fileHandler = try! MockFileHandler()
         opener = MockOpener()
@@ -31,12 +27,9 @@ final class FocusCommandTests: XCTestCase {
         resourceLocator = MockResourceLocator()
 
         subject = FocusCommand(parser: parser,
-                               graphLoader: graphLoader,
-                               workspaceGenerator: workspaceGenerator,
                                printer: printer,
-                               system: system,
-                               resourceLocator: resourceLocator,
                                fileHandler: fileHandler,
+                               generator: generator,
                                opener: opener)
     }
 
@@ -51,7 +44,7 @@ final class FocusCommandTests: XCTestCase {
     func test_run_fatalErrors_when_theworkspaceGenerationFails() throws {
         let result = try parser.parse([FocusCommand.command, "-c", "Debug"])
         let error = NSError.test()
-        workspaceGenerator.generateStub = { _, _, _, _ in
+        generator.generateWorkspaceStub = { _, _ -> AbsolutePath in
             throw error
         }
         XCTAssertThrowsError(try subject.run(with: result)) {
@@ -62,8 +55,8 @@ final class FocusCommandTests: XCTestCase {
     func test_run() throws {
         let result = try parser.parse([FocusCommand.command, "-c", "Debug"])
         let workspacePath = AbsolutePath("/test.xcworkspace")
-        workspaceGenerator.generateStub = { _, _, _, _ in
-            workspacePath
+        generator.generateWorkspaceStub = { _, _ -> AbsolutePath in
+            return workspacePath
         }
         try subject.run(with: result)
 

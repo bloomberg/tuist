@@ -1,0 +1,27 @@
+import Basic
+import Foundation
+import TuistCore
+@testable import TuistCoreTesting
+@testable import TuistGenerator
+import Utility
+import XCTest
+
+final class CoreDataModelTests: XCTestCase {
+    var fileHandler: MockFileHandler!
+
+    override func setUp() {
+        super.setUp()
+        fileHandler = try! MockFileHandler()
+    }
+
+    func test_init() throws {
+        let dataModelPath = fileHandler.currentPath.appending(component: "3.xcdatamodel")
+        try Data().write(to: dataModelPath.url)
+
+        let subject = CoreDataModel(path: dataModelPath,
+                                    versions: [dataModelPath],
+                                    currentVersion: "3")
+
+        XCTAssertEqual(subject.versions, [dataModelPath])
+    }
+}

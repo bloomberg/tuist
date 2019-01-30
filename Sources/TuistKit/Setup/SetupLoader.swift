@@ -26,18 +26,18 @@ class SetupLoader: SetupLoading {
     fileprivate let printer: Printing
 
     /// Graph manifset loader instance to load the setup.
-    fileprivate let graphManifestLoader: GraphManifestLoading
+    fileprivate let manifestLoader: ManifestLoading
 
     /// System instance to run commands on the system.
     fileprivate let system: Systeming
 
     convenience init(fileHandler: FileHandling = FileHandler()) {
         let upLinter = UpLinter()
-        let graphManifestLoader = GraphManifestLoader()
+        let manifestLoader = ManifestLoader()
         self.init(upLinter: upLinter,
                   fileHandler: fileHandler,
                   printer: Printer(),
-                  graphManifestLoader: graphManifestLoader,
+                  manifestLoader: manifestLoader,
                   system: System())
     }
 
@@ -47,17 +47,17 @@ class SetupLoader: SetupLoading {
     ///   - upLinter: Linter for up commands.
     ///   - fileHandler: File handler instance to interact with the file system.
     ///   - printer: Printer instance to output information to the user.
-    ///   - graphManifestLoader: Graph manifset loader instance to load the setup.
+    ///   - manifestLoader: Graph manifset loader instance to load the setup.
     ///   - system: System instance to run commands on the system.
     init(upLinter: UpLinting,
          fileHandler: FileHandling,
          printer: Printing,
-         graphManifestLoader: GraphManifestLoading,
+         manifestLoader: ManifestLoading,
          system: Systeming) {
         self.upLinter = upLinter
         self.fileHandler = fileHandler
         self.printer = printer
-        self.graphManifestLoader = graphManifestLoader
+        self.manifestLoader = manifestLoader
         self.system = system
     }
 
@@ -67,7 +67,7 @@ class SetupLoader: SetupLoading {
     /// - Throws: An error if any of the commands exit unsuccessfully
     ///           or if there isn't a `Setup.swift` file within the project path.
     func meet(at path: AbsolutePath) throws {
-        let setup = try graphManifestLoader.loadSetup(at: path)
+        let setup = try manifestLoader.loadSetup(at: path)
         try setup.map { command in upLinter.lint(up: command) }
             .flatMap { $0 }
             .printAndThrowIfNeeded(printer: printer)

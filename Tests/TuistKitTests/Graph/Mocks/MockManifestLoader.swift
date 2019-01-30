@@ -2,7 +2,7 @@ import Basic
 import Foundation
 @testable import TuistKit
 
-final class MockGraphManifestLoader: GraphManifestLoading {
+final class MockManifestLoader: ManifestLoading {
     var loadCount: UInt = 0
     var loadStub: ((Manifest, AbsolutePath) throws -> JSON)?
 
