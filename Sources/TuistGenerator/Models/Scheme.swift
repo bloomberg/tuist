@@ -84,7 +84,6 @@ public class TestAction: Equatable {
         self.coverage = coverage
     }
 
-
     // MARK: - Equatable
     public static func == (lhs: TestAction, rhs: TestAction) -> Bool {
         return lhs.targets == rhs.targets &&

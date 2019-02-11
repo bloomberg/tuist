@@ -24,7 +24,7 @@ enum InitCommandError: FatalError, Equatable {
         }
     }
     
-    static func ==(lhs: InitCommandError, rhs: InitCommandError) -> Bool {
+    static func == (lhs: InitCommandError, rhs: InitCommandError) -> Bool {
         switch (lhs, rhs) {
         case let (.alreadyExists(lhsPath), .alreadyExists(rhsPath)):
             return lhsPath == rhsPath

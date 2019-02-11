@@ -80,5 +80,5 @@ enum Manifest {
         }
     }
 
-    static var supportedExtensions: Set<String> = Set(arrayLiteral: "json", "swift", "yaml", "yml")
+    static var supportedExtensions: Set<String> = ["json", "swift", "yaml", "yml"]
 }

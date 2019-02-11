@@ -13,7 +13,6 @@ public class TuistGeneratorModelLoader: ModelLoading {
         self.manifestLoader = manifestLoader
     }
 
-
     public func loadProject(at path: AbsolutePath) throws -> Project {
         let json = try manifestLoader.load(.project, path: path)
         let project = try TuistGenerator.Project.from(json: json, path: path, fileHandler: fileHandler)
@@ -82,7 +81,8 @@ extension TuistGenerator.Target {
 
         // Resources
         let resourcesString: String? = try? json.get("resources")
-        let resources = try resourcesString.map { try TuistGenerator.Target.resources(projectPath: path, resources: $0, fileHandler: fileHandler) } ?? []
+        let resources = try resourcesString.map {
+            try TuistGenerator.Target.resources(projectPath: path, resources: $0, fileHandler: fileHandler) } ?? []
 
         // Headers
         let headersJSON: JSON? = try? json.get("headers")

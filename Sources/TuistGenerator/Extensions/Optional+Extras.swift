@@ -1,7 +1,7 @@
 extension Optional {
 
     func valueOrThrow(_ error: Error) throws -> Wrapped {
-        switch (self) {
+        switch self {
         case let .some(value):
             return value
         case .none:

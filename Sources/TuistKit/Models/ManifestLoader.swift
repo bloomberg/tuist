@@ -130,7 +130,7 @@ class ManifestLoader: ManifestLoading {
             "-I", projectDescriptionPath.parentDirectory.asString,
             "-L", projectDescriptionPath.parentDirectory.asString,
             "-F", projectDescriptionPath.parentDirectory.asString,
-            "-lProjectDescription",
+            "-lProjectDescription"
             ]
         arguments.append(path.asString)
         arguments.append("--dump")
