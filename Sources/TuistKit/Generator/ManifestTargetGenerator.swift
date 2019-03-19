@@ -18,9 +18,7 @@ class ManifestTargetGenerator: ManifestTargetGenerating {
 
     func generateManifestTarget(for project: String,
                                 at path: AbsolutePath) throws -> Target {
-        let settings = Settings(base: try manifestTargetBuildSettings(),
-                                debug: nil,
-                                release: nil)
+        let settings = Settings(base: try manifestTargetBuildSettings(), configurations: [:])
         let manifest = try manifestLoader.manifestPath(at: path, manifest: .project)
         return Target(name: "\(project)-Manifest",
                       platform: .macOS,

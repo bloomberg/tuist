@@ -91,16 +91,8 @@ class ProjectFileElements {
     }
 
     func projectFiles(project: Project) -> Set<AbsolutePath> {
-        var files = Set<AbsolutePath>()
-
-        /// Config files
-        if let debugConfigFile = project.settings?.debug?.xcconfig {
-            files.insert(debugConfigFile)
-        }
-        if let releaseConfigFile = project.settings?.release?.xcconfig {
-            files.insert(releaseConfigFile)
-        }
-        return files
+        let projectConfigs = project.settings.configurations.values.compactMap { $0?.xcconfig }
+        return Set(projectConfigs)
     }
 
     func targetProducts(target: Target) -> Set<String> {
@@ -132,11 +124,8 @@ class ProjectFileElements {
         }
 
         // Config files
-        if let debugConfigFile = target.settings?.debug?.xcconfig {
-            files.insert(debugConfigFile)
-        }
-        if let releaseConfigFile = target.settings?.release?.xcconfig {
-            files.insert(releaseConfigFile)
+        target.settings?.xcconfigs().forEach { configFilePath in
+            files.insert(configFilePath)
         }
         return files
     }

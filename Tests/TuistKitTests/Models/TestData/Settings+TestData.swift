@@ -12,10 +12,18 @@ extension Configuration {
 
 extension Settings {
     static func test(base: [String: String] = [:],
-                     debug: Configuration? = Configuration(xcconfig: AbsolutePath("/Debug.xcconfig")),
-                     release: Configuration? = Configuration(xcconfig: AbsolutePath("/Debug.xcconfig"))) -> Settings {
+                     debug: Configuration = Configuration(settings: [:], xcconfig: AbsolutePath("/Debug.xcconfig")),
+                     release: Configuration = Configuration(settings: [:], xcconfig: AbsolutePath("/Release.xcconfig"))
+        ) -> Settings {
         return Settings(base: base,
-                        debug: debug,
-                        release: release)
+                        configurations: [.debug: debug, .release: release])
+    }
+
+    static func test(base: [String: String] = [:],
+                     configurations: [BuildConfiguration: Configuration?]? = nil) -> Settings {
+        return Settings(base: base, configurations: configurations ?? [
+            .debug: Configuration(settings: [:], xcconfig: AbsolutePath("/Debug.xcconfig")),
+            .release: Configuration(xcconfig: AbsolutePath("/Debug.xcconfig"))
+        ])
     }
 }

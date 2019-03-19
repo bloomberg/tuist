@@ -24,15 +24,16 @@ final class TargetTests: XCTestCase {
                                  .project(target: "target", path: "path"),
                                  .target(name: "name"),
                              ],
-                             settings: Settings(base: ["a": "b"],
-                                                debug: Configuration(settings: ["a": "b"],
-                                                                     xcconfig: "config"),
-                                                release: Configuration(settings: ["a": "b"],
-                                                                       xcconfig: "config")),
+                             settings: Settings(
+                                base: ["base": "base"],
+                                configurations: [
+                                    .debug(name: "Debug", settings: ["debug": "debug"], xcconfig: "/path/debug.xcconfig"),
+                                    .release(name: "Release", settings: ["release": "release"], xcconfig: "/path/release.xcconfig")
+                             ]),
                              coreDataModels: [CoreDataModel("pat", currentVersion: "version")],
                              environment: ["a": "b"])
 
-        let expected = "{\"bundle_id\": \"bundle_id\", \"core_data_models\": [{\"current_version\": \"version\", \"path\": \"pat\"}], \"dependencies\": [{\"path\": \"path\", \"type\": \"framework\"}, {\"path\": \"path\", \"public_headers\": \"public\", \"swift_module_map\": \"module\", \"type\": \"library\"}, {\"path\": \"path\", \"target\": \"target\", \"type\": \"project\"}, {\"name\": \"name\", \"type\": \"target\"}], \"entitlements\": \"entitlement\", \"headers\": {\"private\": \"private/*\", \"project\": \"project/*\", \"public\": \"public/*\"}, \"info_plist\": \"info.plist\", \"name\": \"name\", \"platform\": \"ios\", \"product\": \"app\", \"resources\": {\"globs\": [\"resources/*\"]}, \"settings\": {\"base\": {\"a\": \"b\"}, \"debug\": {\"settings\": {\"a\": \"b\"}, \"xcconfig\": \"config\"}, \"release\": {\"settings\": {\"a\": \"b\"}, \"xcconfig\": \"config\"}}, \"sources\": {\"globs\": [\"sources/*\"]}, \"actions\": [ { \"path\": \"path\", \"arguments\": [\"arg\"], \"name\": \"name\", \"order\": \"post\"}], \"environment\": {\"a\": \"b\"}}"
+        let expected = "{\"actions\":[{\"arguments\":[\"arg\"],\"name\":\"name\",\"order\":\"post\",\"path\":\"path\"}],\"bundle_id\":\"bundle_id\",\"core_data_models\":[{\"current_version\":\"version\",\"path\":\"pat\"}],\"dependencies\":[{\"path\":\"path\",\"type\":\"framework\"},{\"path\":\"path\",\"public_headers\":\"public\",\"swift_module_map\":\"module\",\"type\":\"library\"},{\"path\":\"path\",\"target\":\"target\",\"type\":\"project\"},{\"name\":\"name\",\"type\":\"target\"}],\"entitlements\":\"entitlement\",\"environment\":{\"a\":\"b\"},\"headers\":{\"private\":\"private\\/*\",\"project\":\"project\\/*\",\"public\":\"public\\/*\"},\"info_plist\":\"info.plist\",\"name\":\"name\",\"platform\":\"ios\",\"product\":\"app\",\"resources\":{\"globs\":[\"resources\\/*\"]},\"settings\":{\"value\":{\"base\":{\"base\":\"base\"},\"configurations\":[{\"buildConfiguration\":\"debug\",\"name\":\"Debug\",\"settings\":{\"debug\":\"debug\"},\"xcconfig\":\"\\/path\\/debug.xcconfig\"},{\"buildConfiguration\":\"release\",\"name\":\"Release\",\"settings\":{\"release\":\"release\"},\"xcconfig\":\"\\/path\\/release.xcconfig\"}]}},\"sources\":{\"globs\":[\"sources\\/*\"]}}"
         assertCodableEqualToJson(subject, expected)
     }
 
@@ -57,15 +58,16 @@ final class TargetTests: XCTestCase {
                                  .project(target: "target", path: "path"),
                                  .target(name: "name"),
                              ],
-                             settings: Settings(base: ["a": "b"],
-                                                debug: Configuration(settings: ["a": "b"],
-                                                                     xcconfig: "config"),
-                                                release: Configuration(settings: ["a": "b"],
-                                                                       xcconfig: "config")),
+                             settings: Settings(
+                                base: ["base": "base"],
+                                configurations: [
+                                    .debug(name: "Debug", settings: ["debug": "debug"]),
+                                    .release(name: "Release", settings: ["release": "release"])
+                             ]),
                              coreDataModels: [CoreDataModel("pat", currentVersion: "version")],
                              environment: ["a": "b"])
 
-        let expected = "{\"bundle_id\": \"bundle_id\", \"core_data_models\": [{\"current_version\": \"version\", \"path\": \"pat\"}], \"dependencies\": [{\"path\": \"path\", \"type\": \"framework\"}, {\"path\": \"path\", \"public_headers\": \"public\", \"swift_module_map\": \"module\", \"type\": \"library\"}, {\"path\": \"path\", \"target\": \"target\", \"type\": \"project\"}, {\"name\": \"name\", \"type\": \"target\"}], \"entitlements\": \"entitlement\", \"headers\": {\"private\": \"private/*\", \"project\": \"project/*\", \"public\": \"public/*\"}, \"info_plist\": \"info.plist\", \"name\": \"name\", \"platform\": \"ios\", \"product\": \"app\", \"resources\": {\"globs\": [\"resources/*\"]}, \"settings\": {\"base\": {\"a\": \"b\"}, \"debug\": {\"settings\": {\"a\": \"b\"}, \"xcconfig\": \"config\"}, \"release\": {\"settings\": {\"a\": \"b\"}, \"xcconfig\": \"config\"}}, \"sources\": {\"globs\": [\"sources/*\"]}, \"actions\": [ { \"path\": \"path\", \"arguments\": [\"arg\"], \"name\": \"name\", \"order\": \"post\"}], \"environment\": {\"a\": \"b\"}}"
+        let expected = "{\"actions\":[{\"arguments\":[\"arg\"],\"name\":\"name\",\"order\":\"post\",\"path\":\"path\"}],\"bundle_id\":\"bundle_id\",\"core_data_models\":[{\"current_version\":\"version\",\"path\":\"pat\"}],\"dependencies\":[{\"path\":\"path\",\"type\":\"framework\"},{\"path\":\"path\",\"public_headers\":\"public\",\"swift_module_map\":\"module\",\"type\":\"library\"},{\"path\":\"path\",\"target\":\"target\",\"type\":\"project\"},{\"name\":\"name\",\"type\":\"target\"}],\"entitlements\":\"entitlement\",\"environment\":{\"a\":\"b\"},\"headers\":{\"private\":\"private\\/*\",\"project\":\"project\\/*\",\"public\":\"public\\/*\"},\"info_plist\":\"info.plist\",\"name\":\"name\",\"platform\":\"ios\",\"product\":\"app\",\"resources\":{\"globs\":[\"resources\\/*\"]},\"settings\":{\"value\":{\"base\":{\"base\":\"base\"},\"configurations\":[{\"buildConfiguration\":\"debug\",\"name\":\"Debug\",\"settings\":{\"debug\":\"debug\"}},{\"buildConfiguration\":\"release\",\"name\":\"Release\",\"settings\":{\"release\":\"release\"}}]}},\"sources\":{\"globs\":[\"sources\\/*\"]}}"
         assertCodableEqualToJson(subject, expected)
     }
 }

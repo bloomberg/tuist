@@ -32,6 +32,7 @@ enum GraphManifestLoaderError: FatalError, Equatable {
         case .manifestNotFound:
             return .abort
         }
+
     }
 
     // MARK: - Equatable
@@ -54,6 +55,7 @@ enum Manifest: CaseIterable {
     case project
     case workspace
     case setup
+    case environment
 
     var fileName: String {
         switch self {
@@ -63,6 +65,8 @@ enum Manifest: CaseIterable {
             return "Workspace.swift"
         case .setup:
             return "Setup.swift"
+        case .environment:
+            return "Environment.swift"
         }
     }
 }
@@ -71,6 +75,7 @@ protocol GraphManifestLoading {
     func loadProject(at path: AbsolutePath) throws -> ProjectDescription.Project
     func loadWorkspace(at path: AbsolutePath) throws -> ProjectDescription.Workspace
     func loadSetup(at path: AbsolutePath) throws -> [Upping]
+    func loadEnvironment(at path: AbsolutePath) throws -> ProjectDescription.Environment
     func manifests(at path: AbsolutePath) -> Set<Manifest>
     func manifestPath(at path: AbsolutePath, manifest: Manifest) throws -> AbsolutePath
 }
@@ -151,6 +156,10 @@ class GraphManifestLoader: GraphManifestLoading {
                         projectPath: path,
                         fileHandler: fileHandler)
         }
+    }
+
+    func loadEnvironment(at path: AbsolutePath) throws -> Environment {
+        return try loadManifest(.environment, at: path)
     }
 
     // MARK: - Private

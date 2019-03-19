@@ -36,7 +36,10 @@ class GeneratorModelLoader: GeneratorModelLoading {
 
     func loadProject(at path: AbsolutePath) throws -> Project {
         let manifest = try manifestLoader.loadProject(at: path)
-        let project = try TuistKit.Project.from(manifest: manifest, path: path, fileHandler: fileHandler)
+        let project = try TuistKit.Project.from(manifest: manifest,
+                                                path: path,
+                                                fileHandler: fileHandler,
+                                                manifestLoader: manifestLoader)
 
         let manifestTarget = try manifestTargetGenerator.generateManifestTarget(for: project.name,
                                                                                 at: path)
@@ -62,14 +65,20 @@ extension TuistKit.Workspace {
 extension TuistKit.Project {
     static func from(manifest: ProjectDescription.Project,
                      path: AbsolutePath,
-                     fileHandler: FileHandling) throws -> TuistKit.Project {
+                     fileHandler: FileHandling,
+                     manifestLoader: GraphManifestLoading) throws -> TuistKit.Project {
         let name = manifest.name
-        let settings = manifest.settings.map { TuistKit.Settings.from(manifest: $0, path: path) }
-        let targets = try manifest.targets.map { try TuistKit.Target.from(manifest: $0, path: path, fileHandler: fileHandler) }
+        let settings = try manifest.settings.map { try TuistKit.Settings.from(manifest: $0,
+                                                                              path: path,
+                                                                              manifestLoader: manifestLoader) }
+        let targets = try manifest.targets.map { try TuistKit.Target.from(manifest: $0,
+                                                                          path: path,
+                                                                          fileHandler: fileHandler,
+                                                                          manifestLoader: manifestLoader) }
 
         return Project(path: path,
                        name: name,
-                       settings: settings,
+                       settings: settings ?? Settings.default,
                        filesGroup: .group(name: "Project"),
                        targets: targets)
     }
@@ -84,7 +93,10 @@ extension TuistKit.Project {
 }
 
 extension TuistKit.Target {
-    static func from(manifest: ProjectDescription.Target, path: AbsolutePath, fileHandler: FileHandling) throws -> TuistKit.Target {
+    static func from(manifest: ProjectDescription.Target,
+                     path: AbsolutePath,
+                     fileHandler: FileHandling,
+                     manifestLoader: GraphManifestLoading) throws -> TuistKit.Target {
         let name = manifest.name
         let platform = try TuistKit.Platform.from(manifest: manifest.platform)
         let product = TuistKit.Product.from(manifest: manifest.product)
@@ -95,7 +107,9 @@ extension TuistKit.Target {
         let infoPlist = path.appending(RelativePath(manifest.infoPlist))
         let entitlements = manifest.entitlements.map { path.appending(RelativePath($0)) }
 
-        let settings = manifest.settings.map { TuistKit.Settings.from(manifest: $0, path: path) }
+        let settings = try manifest.settings.map { try TuistKit.Settings.from(manifest: $0,
+                                                                              path: path,
+                                                                              manifestLoader: manifestLoader) }
 
         let sources = try TuistKit.Target.sources(projectPath: path, sources: manifest.sources?.globs ?? [], fileHandler: fileHandler)
         let resources = try TuistKit.Target.resources(projectPath: path, resources: manifest.resources?.globs ?? [], fileHandler: fileHandler)
@@ -125,19 +139,42 @@ extension TuistKit.Target {
 }
 
 extension TuistKit.Settings {
-    static func from(manifest: ProjectDescription.Settings, path: AbsolutePath) -> TuistKit.Settings {
-        let base = manifest.base
-        let debug = manifest.debug.flatMap { TuistKit.Configuration.from(manifest: $0, path: path) }
-        let release = manifest.release.flatMap { TuistKit.Configuration.from(manifest: $0, path: path) }
-        return Settings(base: base, debug: debug, release: release)
+    static func from(manifest: Link<ProjectDescription.Settings>,
+                     path: AbsolutePath,
+                     manifestLoader: GraphManifestLoading) throws -> TuistKit.Settings {
+        let settings = try retriveSettings(manifest: manifest, path: path, manifestLoader: manifestLoader)
+        let base = settings.base
+        let configurations = settings.configurations.map { TuistKit.Configuration.from(manifest: $0, path: path) }
+        return Settings(base: base, configurations: Dictionary(uniqueKeysWithValues: configurations))
+    }
+
+    private static func retriveSettings(manifest: Link<ProjectDescription.Settings>,
+                                        path: AbsolutePath,
+                                        manifestLoader: GraphManifestLoading) throws -> ProjectDescription.Settings {
+        switch manifest {
+        case let .value(value):
+            return value
+        case let .environment(environmentIdentifier):
+            let relativePath = RelativePath(environmentIdentifier.path ?? "Environment.swift")
+            let environmentPath = path.appending(relativePath)
+            let environment = try manifestLoader.loadEnvironment(at: environmentPath)
+            guard let settings = environment.settings[environmentIdentifier.identifier] else {
+                throw GraphManifestLoaderError.unexpectedOutput(path)
+            }
+            return settings
+        }
     }
 }
 
 extension TuistKit.Configuration {
-    static func from(manifest: ProjectDescription.Configuration, path: AbsolutePath) -> TuistKit.Configuration {
+    static func from(manifest: ProjectDescription.Configuration, path: AbsolutePath) -> (TuistKit.BuildConfiguration, TuistKit.Configuration)  {
+        let name = manifest.name
         let settings = manifest.settings
         let xcconfig = manifest.xcconfig.flatMap({ path.appending(RelativePath($0)) })
-        return Configuration(settings: settings, xcconfig: xcconfig)
+        let variant: BuildConfiguration.Variant = manifest.buildConfiguration.rawValue == "release" ? .release : .debug
+        let buildConfiguration = BuildConfiguration(name: name, variant: variant)
+        let configuration = Configuration(settings: settings, xcconfig: xcconfig)
+        return (buildConfiguration, configuration)
     }
 }
 

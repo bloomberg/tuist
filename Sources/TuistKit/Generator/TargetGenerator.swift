@@ -7,6 +7,7 @@ protocol TargetGenerating: AnyObject {
     func generateTarget(target: Target,
                         pbxproj: PBXProj,
                         pbxProject: PBXProject,
+                        projectSettings: Settings,
                         groups _: ProjectGroups,
                         fileElements: ProjectFileElements,
                         path: AbsolutePath,
@@ -49,6 +50,7 @@ final class TargetGenerator: TargetGenerating {
     func generateTarget(target: Target,
                         pbxproj: PBXProj,
                         pbxProject: PBXProject,
+                        projectSettings: Settings,
                         groups _: ProjectGroups,
                         fileElements: ProjectFileElements,
                         path: AbsolutePath,
@@ -76,6 +78,7 @@ final class TargetGenerator: TargetGenerating {
         try configGenerator.generateTargetConfig(target,
                                                  pbxTarget: pbxTarget,
                                                  pbxproj: pbxproj,
+                                                 projectSettings: projectSettings,
                                                  fileElements: fileElements,
                                                  options: options,
                                                  sourceRootPath: sourceRootPath)

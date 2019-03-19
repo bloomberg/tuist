@@ -148,6 +148,7 @@ final class ProjectGenerator: ProjectGenerating {
             let nativeTarget = try targetGenerator.generateTarget(target: target,
                                                                   pbxproj: pbxproj,
                                                                   pbxProject: pbxProject,
+                                                                  projectSettings: project.settings,
                                                                   groups: groups,
                                                                   fileElements: fileElements,
                                                                   path: project.path,

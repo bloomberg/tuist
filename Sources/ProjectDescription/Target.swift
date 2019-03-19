@@ -22,7 +22,7 @@ public class Target: Codable {
     public let entitlements: String?
 
     /// Target settings.
-    public let settings: Settings?
+    public let settings: Link<Settings>?
 
     /// Target dependencies.
     public let dependencies: [TargetDependency]
@@ -100,7 +100,7 @@ public class Target: Codable {
         self.infoPlist = infoPlist
         self.entitlements = entitlements
         self.dependencies = dependencies
-        self.settings = settings
+        self.settings = settings?.asLink()
         self.sources = sources
         self.resources = resources
         self.headers = headers

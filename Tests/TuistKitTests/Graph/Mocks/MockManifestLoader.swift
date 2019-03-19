@@ -19,6 +19,9 @@ final class MockGraphManifestLoader: GraphManifestLoading {
     var loadSetupCount: UInt = 0
     var loadSetupStub: ((AbsolutePath) throws -> [Upping])?
 
+    var loadEnvironmentCount: UInt = 0
+    var loadEnvironmentStub: ((AbsolutePath) throws -> ProjectDescription.Environment)?
+
     func loadProject(at path: AbsolutePath) throws -> ProjectDescription.Project {
         return try loadProjectStub?(path) ?? ProjectDescription.Project.test()
     }
@@ -40,5 +43,10 @@ final class MockGraphManifestLoader: GraphManifestLoading {
     func loadSetup(at path: AbsolutePath) throws -> [Upping] {
         loadSetupCount += 1
         return try loadSetupStub?(path) ?? []
+    }
+
+    func loadEnvironment(at path: AbsolutePath) throws -> Environment {
+        loadEnvironmentCount += 1
+        return try loadEnvironmentStub?(path) ?? ProjectDescription.Environment.test()
     }
 }

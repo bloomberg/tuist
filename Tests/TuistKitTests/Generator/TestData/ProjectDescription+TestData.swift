@@ -14,7 +14,7 @@ extension Project {
                      settings: Settings? = nil,
                      targets: [Target] = []) -> Project {
         return Project(name: name,
-                       settings: settings,
+                       settings: settings?.asLink(),
                        targets: targets)
     }
 }
@@ -112,5 +112,11 @@ extension Arguments {
                      launch: [String: Bool] = [:]) -> Arguments {
         return Arguments(environment: environment,
                          launch: launch)
+    }
+}
+
+extension Environment {
+    static func test(settings: [String: Settings] = [:]) -> Environment {
+        return Environment(settings: settings)
     }
 }

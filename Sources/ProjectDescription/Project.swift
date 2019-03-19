@@ -5,7 +5,7 @@ import Foundation
 public class Project: Codable {
     public let name: String
     public let targets: [Target]
-    public let settings: Settings?
+    public let settings: Link<Settings>?
 
     public enum CodingKeys: String, CodingKey {
         case name
@@ -14,7 +14,7 @@ public class Project: Codable {
     }
 
     public init(name: String,
-                settings: Settings? = nil,
+                settings: Link<Settings>? = nil,
                 targets: [Target] = []) {
         self.name = name
         self.targets = targets

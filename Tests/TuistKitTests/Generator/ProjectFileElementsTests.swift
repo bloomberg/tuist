@@ -20,11 +20,13 @@ final class ProjectFileElementsTests: XCTestCase {
     }
 
     func test_projectFiles() {
-        let settings = Settings(base: [:],
-                                debug: Configuration(settings: [:],
-                                                     xcconfig: AbsolutePath("/project/debug.xcconfig")),
-                                release: Configuration(settings: [:],
-                                                       xcconfig: AbsolutePath("/project/release.xcconfig")))
+        let settings = Settings(
+            base: [:],
+            configurations: [
+                .debug: Configuration(xcconfig: AbsolutePath("/project/debug.xcconfig")),
+                .release: Configuration(xcconfig: AbsolutePath("/project/release.xcconfig"))
+            ]
+        )
 
         let project = Project.test(path: AbsolutePath("/project/"), settings: settings)
         let files = subject.projectFiles(project: project)
@@ -39,11 +41,11 @@ final class ProjectFileElementsTests: XCTestCase {
     }
 
     func test_targetFiles() {
-        let settings = Settings(base: [:],
-                                debug: Configuration(settings: [:],
-                                                     xcconfig: AbsolutePath("/project/debug.xcconfig")),
-                                release: Configuration(settings: [:],
-                                                       xcconfig: AbsolutePath("/project/release.xcconfig")))
+        let settings = Settings.test(
+            base: [:],
+            debug: Configuration(settings: ["Configuration": "A"], xcconfig: AbsolutePath("/project/debug.xcconfig")),
+            release: Configuration(settings: ["Configuration": "B"], xcconfig: AbsolutePath("/project/release.xcconfig")))
+
         let target = Target.test(name: "name",
                                  platform: .iOS,
                                  product: .app,

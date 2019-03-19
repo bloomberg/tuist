@@ -24,6 +24,7 @@ final class ManifestTests: XCTestCase {
         XCTAssertEqual(Manifest.project.fileName, "Project.swift")
         XCTAssertEqual(Manifest.workspace.fileName, "Workspace.swift")
         XCTAssertEqual(Manifest.setup.fileName, "Setup.swift")
+        XCTAssertEqual(Manifest.environment.fileName, "Environment.swift")
     }
 }
 
@@ -104,6 +105,29 @@ final class GraphManifestLoaderTests: XCTestCase {
         XCTAssertEqual(customUp?.isMet, ["c"])
     }
 
+    func test_loadEnvironment() throws {
+        // Given
+        let content = """
+        import ProjectDescription
+        let environment = Environment(
+            .settings("default", Settings(base: ["key": "value"]))
+        )
+        """
+
+        let manifestPath = fileHandler.currentPath.appending(component: Manifest.environment.fileName)
+        try content.write(to: manifestPath.url,
+                          atomically: true,
+                          encoding: .utf8)
+
+        // When
+        let got = try subject.loadEnvironment(at: fileHandler.currentPath)
+
+        // Then
+        let settings = got.settings["default"]
+        XCTAssertNotNil(settings)
+        XCTAssertEqual(settings?.base, ["key": "value"])
+    }
+
     func test_load_invalidFormat() throws {
         // Given
         let content = """
@@ -151,6 +175,7 @@ final class GraphManifestLoaderTests: XCTestCase {
         try fileHandler.touch(fileHandler.currentPath.appending(component: "Project.swift"))
         try fileHandler.touch(fileHandler.currentPath.appending(component: "Workspace.swift"))
         try fileHandler.touch(fileHandler.currentPath.appending(component: "Setup.swift"))
+        try fileHandler.touch(fileHandler.currentPath.appending(component: "Environment.swift"))
 
         // When
         let got = subject.manifests(at: fileHandler.currentPath)
@@ -159,5 +184,6 @@ final class GraphManifestLoaderTests: XCTestCase {
         XCTAssertTrue(got.contains(.project))
         XCTAssertTrue(got.contains(.workspace))
         XCTAssertTrue(got.contains(.setup))
+        XCTAssertTrue(got.contains(.environment))
     }
 }

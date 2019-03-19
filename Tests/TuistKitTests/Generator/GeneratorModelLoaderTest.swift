@@ -18,6 +18,7 @@ class GeneratorModelLoaderTest: XCTestCase {
     typealias RunActionManifest = ProjectDescription.RunAction
     typealias ArgumentsManifest = ProjectDescription.Arguments
     typealias BuildConfigurationManifest = ProjectDescription.BuildConfiguration
+    typealias EnvironmentManifest = ProjectDescription.Environment
 
     var manifestTargetGenerator: MockManifestTargetGenerator!
     var fileHandler: MockFileHandler!
@@ -126,15 +127,93 @@ class GeneratorModelLoaderTest: XCTestCase {
 
     func test_settings() throws {
         // Given
-        let debug = ConfigurationManifest(settings: ["Debug": "Debug"], xcconfig: "debug.xcconfig")
-        let release = ConfigurationManifest(settings: ["Release": "Release"], xcconfig: "release.xcconfig")
-        let manifest = SettingsManifest(base: ["base": "base"], debug: debug, release: release)
+        let path = AbsolutePath("/root/")
+        let debug = ConfigurationManifest(name: "Debug",
+                                          settings: ["Debug": "Debug"],
+                                          xcconfig: "debug.xcconfig",
+                                          buildConfiguration: .debug)
+        let release = ConfigurationManifest(name: "Release",
+                                            settings: ["Release": "Release"],
+                                            xcconfig: "release.xcconfig",
+                                            buildConfiguration: .release)
+        let manifest = SettingsManifest(base:  ["base": "base"],
+                                        configurations: [debug, release]).asLink()
+        let manifests = [
+            path: WorkspaceManifest.test(name: "SomeWorkspace", projects: ["A", "B"]),
+        ]
+        let manifestLoader = createManifestLoader(with: manifests)
 
         // When
-        let model = TuistKit.Settings.from(manifest: manifest, path: path)
+        let model = try TuistKit.Settings.from(manifest: manifest, path: path, manifestLoader: manifestLoader)
 
         // Then
         assert(settings: model, matches: manifest, at: path)
+    }
+
+    func test_settings_from_environment() throws {
+        // Given
+        let path = AbsolutePath("/root/")
+        let manifest = createSettingsManifest()
+        let workspaces = [
+            path: WorkspaceManifest.test(name: "SomeWorkspace", projects: ["A", "B"]),
+        ]
+        let environments = [
+            path.appending(component: "Environment.swift"): EnvironmentManifest.test(settings: ["default": manifest]),
+        ]
+        let manifestLoader = createManifestLoader(with: workspaces, environments: environments)
+        let environmentIdentifier = EnvironmentIdentifier(resourceIdentifier: "default")
+
+        // When
+        let model = try TuistKit.Settings.from(manifest: .environment(environmentIdentifier),
+                                               path: path,
+                                               manifestLoader: manifestLoader)
+
+        // Then
+        assert(settings: model, matches: manifest.asLink(), at: path)
+    }
+
+    func test_settings_from_environment_in_parent_directory() throws {
+        // Given
+        let path = AbsolutePath("/root/")
+        let manifest = createSettingsManifest()
+        let workspaces = [
+            path: WorkspaceManifest.test(name: "SomeWorkspace", projects: ["A", "B"]),
+        ]
+        let environments = [
+            path.appending(RelativePath("../../Test.Environment.swift")):
+                EnvironmentManifest.test(settings: ["default": manifest]),
+        ]
+        let manifestLoader = createManifestLoader(with: workspaces, environments: environments)
+        let environmentIdentifier = EnvironmentIdentifier(path: "../../Test.Environment.swift",
+                                                          resourceIdentifier: "default")
+
+        // When
+        let model = try TuistKit.Settings.from(manifest: .environment(environmentIdentifier),
+                                               path: path,
+                                               manifestLoader: manifestLoader)
+
+        // Then
+        assert(settings: model, matches: manifest.asLink(), at: path)
+    }
+
+    func test_settings_from_missing_environment() {
+        // Given
+        let path = AbsolutePath("/root/")
+        let workspaces = [
+            path: WorkspaceManifest.test(name: "SomeWorkspace", projects: ["A", "B"]),
+        ]
+        let manifestLoader = createManifestLoader(with: workspaces)
+        let environmentIdentifier = EnvironmentIdentifier(resourceIdentifier: "default")
+
+        // When / Then
+        var error: Error?
+        XCTAssertThrowsError(try TuistKit.Settings.from(manifest: .environment(environmentIdentifier),
+                                                        path: path,
+                                                        manifestLoader: manifestLoader)) { error = $0 }
+
+        let manifestError = error as? GraphLoadingError
+        XCTAssertNotNil(manifestError, "Thrown unknown error, expected GraphLoadingError")
+        XCTAssertEqual(manifestError?.description, "Couldn't find manifest at path: '/root/Environment.swift'")
     }
 
     func test_headers() throws {
@@ -265,7 +344,8 @@ class GeneratorModelLoaderTest: XCTestCase {
         return manifestLoader
     }
 
-    func createManifestLoader(with workspaces: [AbsolutePath: ProjectDescription.Workspace]) -> GraphManifestLoading {
+    func createManifestLoader(with workspaces: [AbsolutePath: ProjectDescription.Workspace],
+                              environments: [AbsolutePath: ProjectDescription.Environment] = [:]) -> GraphManifestLoading {
         let manifestLoader = MockGraphManifestLoader()
         manifestLoader.loadWorkspaceStub = { path in
             guard let manifest = workspaces[path] else {
@@ -273,7 +353,17 @@ class GeneratorModelLoaderTest: XCTestCase {
             }
             return manifest
         }
+        manifestLoader.loadEnvironmentStub = { path in
+            guard let manifest = environments[path] else {
+                throw GraphLoadingError.manifestNotFound(path)
+            }
+            return manifest
+        }
         return manifestLoader
+    }
+
+    private func createSettingsManifest() -> SettingsManifest {
+        return SettingsManifest(base: ["base": "base"], configurations: [.debug(), .release()])
     }
 
     func assert(target: TuistKit.Target,
@@ -295,19 +385,21 @@ class GeneratorModelLoaderTest: XCTestCase {
     }
 
     func assert(settings: TuistKit.Settings,
-                matches manifest: ProjectDescription.Settings,
+                matches manifestLink: Link<ProjectDescription.Settings>,
                 at path: AbsolutePath,
                 file: StaticString = #file,
                 line: UInt = #line) {
+        guard let manifest = manifestLink.value else {
+            XCTFail("manifestLink.settings is nil")
+            return
+        }
+
         XCTAssertEqual(settings.base, manifest.base, file: file, line: line)
+        XCTAssertEqual(settings.xcconfigs(),
+                       manifest.configurations.compactMap { $0.xcconfig }.map { path.appending(RelativePath($0)) },
+                       file: file, line: line)
 
-        optionalAssert(settings.debug, manifest.debug, file: file, line: line) {
-            assert(configuration: $0, matches: $1, at: path, file: file, line: line)
-        }
-
-        optionalAssert(settings.release, manifest.release, file: file, line: line) {
-            assert(configuration: $0, matches: $1, at: path, file: file, line: line)
-        }
+        // TODO: Finish assertions
     }
 
     func assert(configuration: TuistKit.Configuration,
