@@ -2,10 +2,12 @@ import Foundation
 
 // MARK: - Project
 
+public typealias SettingsLink = Link<Settings?>?
+
 public class Project: Codable {
     public let name: String
     public let targets: [Target]
-    public let settings: Link<Settings>?
+    public let settings: SettingsLink
 
     public enum CodingKeys: String, CodingKey {
         case name
@@ -14,7 +16,7 @@ public class Project: Codable {
     }
 
     public init(name: String,
-                settings: Link<Settings>? = nil,
+                settings: SettingsLink = nil,
                 targets: [Target] = []) {
         self.name = name
         self.targets = targets

@@ -23,7 +23,7 @@ let targetSettings = Settings(base: [
                             ])
 
 let project = Project(name: "MainApp",
-                      settings: projectSettings,
+                      settings: projectSettings.asLink(),
                       targets: [
                         Target(name: "App",
                                platform: .iOS,

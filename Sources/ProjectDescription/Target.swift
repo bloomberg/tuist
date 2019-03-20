@@ -22,7 +22,7 @@ public class Target: Codable {
     public let entitlements: String?
 
     /// Target settings.
-    public let settings: Link<Settings>?
+    public let settings: SettingsLink
 
     /// Target dependencies.
     public let dependencies: [TargetDependency]
@@ -90,7 +90,7 @@ public class Target: Codable {
                 entitlements: String? = nil,
                 actions: [TargetAction] = [],
                 dependencies: [TargetDependency] = [],
-                settings: Settings? = nil,
+                settings: SettingsLink = nil,
                 coreDataModels: [CoreDataModel] = [],
                 environment: [String: String] = [:]) {
         self.name = name
@@ -100,7 +100,7 @@ public class Target: Codable {
         self.infoPlist = infoPlist
         self.entitlements = entitlements
         self.dependencies = dependencies
-        self.settings = settings?.asLink()
+        self.settings = settings
         self.sources = sources
         self.resources = resources
         self.headers = headers

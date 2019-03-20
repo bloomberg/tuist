@@ -68,9 +68,9 @@ extension TuistKit.Project {
                      fileHandler: FileHandling,
                      manifestLoader: GraphManifestLoading) throws -> TuistKit.Project {
         let name = manifest.name
-        let settings = try manifest.settings.map { try TuistKit.Settings.from(manifest: $0,
-                                                                              path: path,
-                                                                              manifestLoader: manifestLoader) }
+        let settings = try TuistKit.Settings.from(manifest: manifest.settings,
+                                                  path: path,
+                                                  manifestLoader: manifestLoader)
         let targets = try manifest.targets.map { try TuistKit.Target.from(manifest: $0,
                                                                           path: path,
                                                                           fileHandler: fileHandler,
@@ -107,9 +107,9 @@ extension TuistKit.Target {
         let infoPlist = path.appending(RelativePath(manifest.infoPlist))
         let entitlements = manifest.entitlements.map { path.appending(RelativePath($0)) }
 
-        let settings = try manifest.settings.map { try TuistKit.Settings.from(manifest: $0,
-                                                                              path: path,
-                                                                              manifestLoader: manifestLoader) }
+        let settings = try manifest.settings.flatMap { try TuistKit.Settings.from(manifest: $0,
+                                                                                  path: path,
+                                                                                  manifestLoader: manifestLoader) }
 
         let sources = try TuistKit.Target.sources(projectPath: path, sources: manifest.sources?.globs ?? [], fileHandler: fileHandler)
         let resources = try TuistKit.Target.resources(projectPath: path, resources: manifest.resources?.globs ?? [], fileHandler: fileHandler)
@@ -139,26 +139,34 @@ extension TuistKit.Target {
 }
 
 extension TuistKit.Settings {
-    static func from(manifest: Link<ProjectDescription.Settings>,
+    static func from(manifest: SettingsLink,
                      path: AbsolutePath,
-                     manifestLoader: GraphManifestLoading) throws -> TuistKit.Settings {
-        let settings = try retriveSettings(manifest: manifest, path: path, manifestLoader: manifestLoader)
+                     manifestLoader: GraphManifestLoading) throws -> TuistKit.Settings? {
+        guard let settings = try retriveSettings(manifest: manifest, path: path, manifestLoader: manifestLoader) else {
+            return nil
+        }
         let base = settings.base
         let configurations = settings.configurations.map { TuistKit.Configuration.from(manifest: $0, path: path) }
         return Settings(base: base, configurations: Dictionary(uniqueKeysWithValues: configurations))
     }
 
-    private static func retriveSettings(manifest: Link<ProjectDescription.Settings>,
+    private static func retriveSettings(manifest: SettingsLink,
                                         path: AbsolutePath,
-                                        manifestLoader: GraphManifestLoading) throws -> ProjectDescription.Settings {
+                                        manifestLoader: GraphManifestLoading) throws -> ProjectDescription.Settings? {
+        guard let manifest = manifest else {
+            return nil
+        }
         switch manifest {
         case let .value(value):
+            guard let value = value else {
+                throw GraphManifestLoaderError.unexpectedOutput(path)
+            }
             return value
         case let .environment(environmentIdentifier):
             let relativePath = RelativePath(environmentIdentifier.path ?? "Environment.swift")
             let environmentPath = path.appending(relativePath)
             let environment = try manifestLoader.loadEnvironment(at: environmentPath)
-            guard let settings = environment.settings[environmentIdentifier.identifier] else {
+            guard let settings = environment.settings(environmentIdentifier.identifier).value?.flatMap({ $0 }) else {
                 throw GraphManifestLoaderError.unexpectedOutput(path)
             }
             return settings
