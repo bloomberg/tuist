@@ -166,7 +166,26 @@ extension TuistKit.Settings {
             guard let settings = environment.settings[environmentIdentifier.identifier] else {
                 throw GraphManifestLoaderError.unexpectedOutput(path)
             }
-            return settings
+
+            /// Horrible quick hack!
+            let patchedConfigurations = settings.configurations.map { configuration -> ProjectDescription.Configuration in
+                let xcconfig: String?
+                if let relativePath = environmentIdentifier.path {
+                    if let configurationXCConfig = configuration.xcconfig {
+                        xcconfig = "\(relativePath)/\(configurationXCConfig)"
+                    } else {
+                        xcconfig = nil
+                    }
+                } else {
+                    xcconfig = configuration.xcconfig
+                }
+                return ProjectDescription.Configuration(name: configuration.name,
+                                                        settings: configuration.settings,
+                                                        xcconfig: xcconfig,
+                                                        buildConfiguration: configuration.buildConfiguration)
+
+            }
+            return ProjectDescription.Settings(base: settings.base, configurations: patchedConfigurations)
         }
     }
 }

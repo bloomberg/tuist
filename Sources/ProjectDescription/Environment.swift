@@ -38,7 +38,6 @@ public class Environment: Codable {
     public typealias Identifier = String
 
     public let settings: [EnvironmentIdentifier.ResourceIdentifier: Settings]
-
     private let path: String?
 
     public convenience init(_ variables: VariableType...) {
@@ -56,6 +55,18 @@ public class Environment: Codable {
         self.settings = settings
         self.path = nil
         dumpIfNeeded(self)
+    }
+
+    /// That makes the public interface very confusing, in the manifest files we need to use
+    /// this method to get the link but in the model loader, settings should be accessed directly...
+    /// We should unify this...
+    public func settings(_ identifier: EnvironmentIdentifier.ResourceIdentifier) -> Link<Settings> {
+        if let path = path {
+            return .environment(EnvironmentIdentifier(path: path, resourceIdentifier: identifier))
+        }
+
+        /// Would need to be changed
+        fatalError("Invalid state")
     }
 
     private init(path: String) {

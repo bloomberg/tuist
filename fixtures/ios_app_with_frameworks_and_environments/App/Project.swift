@@ -35,7 +35,7 @@ let project = Project(name: "MainApp",
                                     .project(target: "Framework1", path: "../Framework1"),
                                     .project(target: "Framework2", path: "../Framework2")
                                 ],
-                               settings: targetSettings),
+                               settings: targetSettings.asLink()),
                         Target(name: "AppTests",
                                platform: .iOS,
                                product: .unitTests,
