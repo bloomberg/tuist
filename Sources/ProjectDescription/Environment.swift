@@ -37,7 +37,8 @@ public class Environment: Codable {
 
     public typealias Identifier = String
 
-    private let settings: [EnvironmentIdentifier.ResourceIdentifier: Settings]
+    public let settings: [EnvironmentIdentifier.ResourceIdentifier: Settings]
+
     private let path: String?
 
     public convenience init(_ variables: VariableType...) {
@@ -54,19 +55,12 @@ public class Environment: Codable {
     public init(settings: [EnvironmentIdentifier.ResourceIdentifier: Settings]) {
         self.settings = settings
         self.path = nil
-    }
-
-    public func settings(_ identifier: EnvironmentIdentifier.ResourceIdentifier) -> Link<Settings?> {
-        if let path = path {
-            return .environment(EnvironmentIdentifier(path: path, resourceIdentifier: identifier))
-        }
-        return .value(settings[identifier])
+        dumpIfNeeded(self)
     }
 
     private init(path: String) {
         self.settings = [:]
         self.path = path
-        dumpIfNeeded(self)
     }
 
     public static func at(path: String) -> Environment {

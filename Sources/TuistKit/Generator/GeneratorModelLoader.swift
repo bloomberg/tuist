@@ -158,15 +158,12 @@ extension TuistKit.Settings {
         }
         switch manifest {
         case let .value(value):
-            guard let value = value else {
-                throw GraphManifestLoaderError.unexpectedOutput(path)
-            }
             return value
         case let .environment(environmentIdentifier):
             let relativePath = RelativePath(environmentIdentifier.path ?? "Environment.swift")
             let environmentPath = path.appending(relativePath)
             let environment = try manifestLoader.loadEnvironment(at: environmentPath)
-            guard let settings = environment.settings(environmentIdentifier.identifier).value?.flatMap({ $0 }) else {
+            guard let settings = environment.settings[environmentIdentifier.identifier] else {
                 throw GraphManifestLoaderError.unexpectedOutput(path)
             }
             return settings

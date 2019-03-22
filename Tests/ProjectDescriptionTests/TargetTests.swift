@@ -29,7 +29,7 @@ final class TargetTests: XCTestCase {
                                 configurations: [
                                     .debug(name: "Debug", settings: ["debug": "debug"], xcconfig: "/path/debug.xcconfig"),
                                     .release(name: "Release", settings: ["release": "release"], xcconfig: "/path/release.xcconfig")
-                             ]),
+                             ]).asLink(),
                              coreDataModels: [CoreDataModel("pat", currentVersion: "version")],
                              environment: ["a": "b"])
 
@@ -63,7 +63,7 @@ final class TargetTests: XCTestCase {
                                 configurations: [
                                     .debug(name: "Debug", settings: ["debug": "debug"]),
                                     .release(name: "Release", settings: ["release": "release"])
-                             ]),
+                             ]).asLink(),
                              coreDataModels: [CoreDataModel("pat", currentVersion: "version")],
                              environment: ["a": "b"])
 

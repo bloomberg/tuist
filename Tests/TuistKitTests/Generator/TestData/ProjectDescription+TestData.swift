@@ -45,7 +45,7 @@ extension Target {
                       entitlements: entitlements,
                       actions: actions,
                       dependencies: dependencies,
-                      settings: settings,
+                      settings: settings?.asLink(),
                       coreDataModels: coreDataModels,
                       environment: environment)
     }

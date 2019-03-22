@@ -384,18 +384,18 @@ class GeneratorModelLoaderTest: XCTestCase {
         }
     }
 
-    func assert(settings: TuistKit.Settings,
-                matches manifestLink: Link<ProjectDescription.Settings>,
+    func assert(settings: TuistKit.Settings?,
+                matches manifestLink: Link<ProjectDescription.Settings>?,
                 at path: AbsolutePath,
                 file: StaticString = #file,
                 line: UInt = #line) {
-        guard let manifest = manifestLink.value else {
-            XCTFail("manifestLink.settings is nil")
+        guard let manifest = manifestLink?.value else {
+            XCTFail("manifestLink?.settings is nil")
             return
         }
 
-        XCTAssertEqual(settings.base, manifest.base, file: file, line: line)
-        XCTAssertEqual(settings.xcconfigs(),
+        XCTAssertEqual(settings?.base, manifest.base, file: file, line: line)
+        XCTAssertEqual(settings?.xcconfigs(),
                        manifest.configurations.compactMap { $0.xcconfig }.map { path.appending(RelativePath($0)) },
                        file: file, line: line)
 

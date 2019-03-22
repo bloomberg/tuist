@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Project
 
-public typealias SettingsLink = Link<Settings?>?
+public typealias SettingsLink = Link<Settings>?
 
 public class Project: Codable {
     public let name: String
