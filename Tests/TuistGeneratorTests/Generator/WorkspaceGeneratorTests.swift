@@ -20,12 +20,16 @@ final class WorkspaceGeneratorTests: XCTestCase {
             let projectDirectoryHelper = ProjectDirectoryHelper(environmentController: try MockEnvironmentController(),
                                                                 fileHandler: fileHandler)
 
-            subject = WorkspaceGenerator(
-                system: MockSystem(),
-                printer: MockPrinter(),
-                projectDirectoryHelper: projectDirectoryHelper,
-                fileHandler: fileHandler
-            )
+            let tuistGeneratorFactory = TuistGeneratorFactory(system: MockSystem(),
+                                                              printer: MockPrinter(),
+                                                              fileHandler: fileHandler)
+
+            subject = WorkspaceGenerator(system: MockSystem(),
+                                         printer: MockPrinter(),
+                                         projectDirectoryHelper: projectDirectoryHelper,
+                                         projectGenerator: tuistGeneratorFactory.createProjectGenerator(),
+                                         fileHandler: fileHandler,
+                                         workspaceStructureGenerator: tuistGeneratorFactory.createWorkspaceStructureGenerator())
 
         } catch {
             XCTFail(error.localizedDescription)

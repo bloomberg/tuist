@@ -42,12 +42,12 @@ final class ProjectGenerator: ProjectGenerating {
     ///   - printer: Printer instance to output messages to the user.
     ///   - system: System instance to run commands in the system.
     ///   - fileHandler: File handler instance to interact with the system files.
-    init(targetGenerator: TargetGenerating = TargetGenerator(),
-         configGenerator: ConfigGenerating = ConfigGenerator(),
-         schemesGenerator: SchemesGenerating = SchemesGenerator(),
-         printer: Printing = Printer(),
-         system: Systeming = System(),
-         fileHandler: FileHandling = FileHandler()) {
+    init(targetGenerator: TargetGenerating,
+         configGenerator: ConfigGenerating,
+         schemesGenerator: SchemesGenerating,
+         printer: Printing,
+         system: Systeming,
+         fileHandler: FileHandling) {
         self.targetGenerator = targetGenerator
         self.configGenerator = configGenerator
         self.schemesGenerator = schemesGenerator

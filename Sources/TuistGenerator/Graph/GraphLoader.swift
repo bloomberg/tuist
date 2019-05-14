@@ -17,9 +17,9 @@ class GraphLoader: GraphLoading {
 
     // MARK: - Init
 
-    init(linter: GraphLinting = GraphLinter(),
-         printer: Printing = Printer(),
-         fileHandler: FileHandling = FileHandler(),
+    init(linter: GraphLinting,
+         printer: Printing,
+         fileHandler: FileHandling,
          modelLoader: GeneratorModelLoading) {
         self.linter = linter
         self.printer = printer

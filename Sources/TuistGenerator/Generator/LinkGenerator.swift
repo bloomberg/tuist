@@ -59,7 +59,7 @@ final class LinkGenerator: LinkGenerating {
     /// Initializes the link generator with its attributes.
     ///
     /// - Parameter binaryLocator: An instance to locate tuist binaries.
-    init(binaryLocator: BinaryLocating = BinaryLocator()) {
+    init(binaryLocator: BinaryLocating) {
         self.binaryLocator = binaryLocator
     }
 

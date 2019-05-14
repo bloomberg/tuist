@@ -14,9 +14,9 @@ class TargetLinter: TargetLinting {
 
     // MARK: - Init
 
-    init(settingsLinter: SettingsLinting = SettingsLinter(),
-         fileHandler: FileHandling = FileHandler(),
-         targetActionLinter: TargetActionLinting = TargetActionLinter()) {
+    init(settingsLinter: SettingsLinting,
+         fileHandler: FileHandling,
+         targetActionLinter: TargetActionLinting) {
         self.settingsLinter = settingsLinter
         self.fileHandler = fileHandler
         self.targetActionLinter = targetActionLinter

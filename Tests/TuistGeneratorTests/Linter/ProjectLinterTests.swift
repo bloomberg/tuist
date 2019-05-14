@@ -9,7 +9,9 @@ final class ProjectLinterTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        subject = ProjectLinter()
+        let tuistGeneratorFactory = TuistGeneratorFactory()
+        subject = ProjectLinter(targetLinter: tuistGeneratorFactory.createTargetLinter(),
+                                settingsLinter: tuistGeneratorFactory.createSettingsLinter())
     }
 
     func test_validate_when_there_are_duplicated_targets() throws {

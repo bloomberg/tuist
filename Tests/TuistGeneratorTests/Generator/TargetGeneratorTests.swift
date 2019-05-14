@@ -19,7 +19,12 @@ final class TargetGeneratorTests: XCTestCase {
         pbxProject = createPbxProject(pbxproj: pbxproj)
         fileElements = ProjectFileElements([:], playgrounds: MockPlaygrounds())
 
-        subject = TargetGenerator()
+        let tuistGeneratorFactory = TuistGeneratorFactory()
+
+        subject = TargetGenerator(configGenerator: tuistGeneratorFactory.createConfigGenerator(),
+                                  fileGenerator: tuistGeneratorFactory.createFileGenerator(),
+                                  buildPhaseGenerator: tuistGeneratorFactory.createBuildPhaseGenerator(),
+                                  linkGenerator: tuistGeneratorFactory.createLinkGenerator())
     }
 
     func test_generateTarget_productName() throws {

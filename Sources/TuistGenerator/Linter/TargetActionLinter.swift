@@ -24,8 +24,8 @@ class TargetActionLinter: TargetActionLinting {
     /// Default initializer.
     ///
     /// - Parameter system: System instance to run any commands in the system.
-    init(system: Systeming = System(),
-         fileHandler: FileHandling = FileHandler()) {
+    init(system: Systeming,
+         fileHandler: FileHandling) {
         self.system = system
         self.fileHandler = fileHandler
     }

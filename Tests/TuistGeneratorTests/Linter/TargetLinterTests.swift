@@ -12,7 +12,10 @@ final class TargetLinterTests: XCTestCase {
     override func setUp() {
         super.setUp()
         fileHandler = try! MockFileHandler()
-        subject = TargetLinter(fileHandler: fileHandler)
+        let tuistGeneratorFactory = TuistGeneratorFactory(fileHandler: fileHandler)
+        subject = TargetLinter(settingsLinter: tuistGeneratorFactory.createSettingsLinter(),
+                               fileHandler: fileHandler,
+                               targetActionLinter: tuistGeneratorFactory.createTargetActionLinter())
     }
 
     func test_lint_when_target_has_invalid_bundle_identifier() {

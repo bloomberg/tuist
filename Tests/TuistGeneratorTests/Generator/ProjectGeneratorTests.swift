@@ -18,8 +18,17 @@ final class ProjectGeneratorTests: XCTestCase {
         printer = MockPrinter()
         system = MockSystem()
         fileHandler = try! MockFileHandler()
-        subject = ProjectGenerator(printer: printer,
-                                   system: system)
+
+        let tuistGeneratorFactory = TuistGeneratorFactory(system: system,
+                                                          printer: printer,
+                                                          fileHandler: fileHandler)
+
+        subject = ProjectGenerator(targetGenerator: tuistGeneratorFactory.createTargetGenerator(),
+                                   configGenerator: tuistGeneratorFactory.createConfigGenerator(),
+                                   schemesGenerator: tuistGeneratorFactory.createSchemasGenerator(),
+                                   printer: printer,
+                                   system: system,
+                                   fileHandler: fileHandler)
     }
 
     func test_generate() throws {

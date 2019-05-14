@@ -28,7 +28,7 @@ final class SchemesGenerator: SchemesGenerating {
     /// Initializes the schemes generator with its attributes.
     ///
     /// - Parameter fileHandler: File handler.
-    init(fileHandler: FileHandling = FileHandler()) {
+    init(fileHandler: FileHandling) {
         self.fileHandler = fileHandler
     }
 
@@ -94,7 +94,6 @@ final class SchemesGenerator: SchemesGenerating {
                               archiveAction: schemeArchiveAction())
         try scheme.write(path: schemePath.path, override: true)
     }
-
 
     /// Returns the build action for the project scheme.
     ///

@@ -40,8 +40,8 @@ class ProjectDirectoryHelper: ProjectDirectoryHelping {
     ///
     /// - Parameter environmentController: Environment controller instance. It's necessary to obtain the directory where the derived projects are generated into.
     /// - Parameter fileHandler: File handler instance for file operations.
-    init(environmentController: EnvironmentControlling = EnvironmentController(),
-         fileHandler: FileHandling = FileHandler()) {
+    init(environmentController: EnvironmentControlling,
+         fileHandler: FileHandling) {
         self.environmentController = environmentController
         self.fileHandler = fileHandler
     }

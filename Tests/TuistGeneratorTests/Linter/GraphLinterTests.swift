@@ -12,7 +12,10 @@ final class GraphLinterTests: XCTestCase {
     override func setUp() {
         super.setUp()
         fileHandler = try! MockFileHandler()
-        subject = GraphLinter(fileHandler: fileHandler)
+        let tuistGeneratorFactory = TuistGeneratorFactory(fileHandler: fileHandler)
+
+        subject = GraphLinter(projectLinter: tuistGeneratorFactory.createProjectLinter(),
+                              fileHandler: fileHandler)
     }
 
     func test_lint_when_carthage_frameworks_are_missing() throws {

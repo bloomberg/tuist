@@ -14,8 +14,8 @@ class ProjectLinter: ProjectLinting {
 
     // MARK: - Init
 
-    init(targetLinter: TargetLinting = TargetLinter(),
-         settingsLinter: SettingsLinting = SettingsLinter()) {
+    init(targetLinter: TargetLinting,
+         settingsLinter: SettingsLinting) {
         self.targetLinter = targetLinter
         self.settingsLinter = settingsLinter
     }

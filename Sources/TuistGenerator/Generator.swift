@@ -55,19 +55,6 @@ public class Generator: Generating {
     private let graphLoader: GraphLoading
     private let workspaceGenerator: WorkspaceGenerating
 
-    public convenience init(system: Systeming = System(),
-                            printer: Printing = Printer(),
-                            fileHandler: FileHandling = FileHandler(),
-                            modelLoader: GeneratorModelLoading) {
-        let graphLoader = GraphLoader(printer: printer, modelLoader: modelLoader)
-        let workspaceGenerator = WorkspaceGenerator(system: system,
-                                                    printer: printer,
-                                                    projectDirectoryHelper: ProjectDirectoryHelper(),
-                                                    fileHandler: fileHandler)
-        self.init(graphLoader: graphLoader,
-                  workspaceGenerator: workspaceGenerator)
-    }
-
     init(graphLoader: GraphLoading,
          workspaceGenerator: WorkspaceGenerating) {
         self.graphLoader = graphLoader

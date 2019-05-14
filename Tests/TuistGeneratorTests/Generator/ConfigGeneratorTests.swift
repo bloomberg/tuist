@@ -19,7 +19,8 @@ final class ConfigGeneratorTests: XCTestCase {
         pbxTarget = PBXNativeTarget(name: "Test")
         pbxproj.add(object: pbxTarget)
         fileHandler = try! MockFileHandler()
-        subject = ConfigGenerator()
+        let tuistGeneratorFactory = TuistGeneratorFactory()
+        subject = ConfigGenerator(fileGenerator: tuistGeneratorFactory.createFileGenerator())
     }
 
     func test_generateProjectConfig_whenDebug() throws {

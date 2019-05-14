@@ -41,19 +41,6 @@ final class WorkspaceGenerator: WorkspaceGenerating {
 
     // MARK: - Init
 
-    convenience init(system: Systeming = System(),
-                     printer: Printing = Printer(),
-                     projectDirectoryHelper: ProjectDirectoryHelping = ProjectDirectoryHelper(),
-                     fileHandler: FileHandling = FileHandler()) {
-        self.init(system: system,
-                  printer: printer,
-                  projectDirectoryHelper: projectDirectoryHelper,
-                  projectGenerator: ProjectGenerator(printer: printer,
-                                                     system: system),
-                  fileHandler: fileHandler,
-                  workspaceStructureGenerator: WorkspaceStructureGenerator(fileHandler: fileHandler))
-    }
-
     init(system: Systeming,
          printer: Printing,
          projectDirectoryHelper: ProjectDirectoryHelping,

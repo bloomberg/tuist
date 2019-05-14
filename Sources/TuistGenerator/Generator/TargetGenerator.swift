@@ -32,10 +32,10 @@ final class TargetGenerator: TargetGenerating {
 
     // MARK: - Init
 
-    init(configGenerator: ConfigGenerating = ConfigGenerator(),
-         fileGenerator: FileGenerating = FileGenerator(),
-         buildPhaseGenerator: BuildPhaseGenerating = BuildPhaseGenerator(),
-         linkGenerator: LinkGenerating = LinkGenerator()) {
+    init(configGenerator: ConfigGenerating,
+         fileGenerator: FileGenerating,
+         buildPhaseGenerator: BuildPhaseGenerating,
+         linkGenerator: LinkGenerating) {
         self.configGenerator = configGenerator
         self.fileGenerator = fileGenerator
         self.buildPhaseGenerator = buildPhaseGenerator

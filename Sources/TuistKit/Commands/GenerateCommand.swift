@@ -36,10 +36,11 @@ class GenerateCommand: NSObject, Command {
         let modelLoader = GeneratorModelLoader(fileHandler: fileHandler,
                                                manifestLoader: manifestLoader,
                                                manifestTargetGenerator: manifestTargetGenerator)
-        let generator = Generator(system: system,
-                                  printer: printer,
-                                  fileHandler: fileHandler,
-                                  modelLoader: modelLoader)
+        let tuistGeneratorFactory = TuistGeneratorFactory(system: system,
+                                                          printer: printer,
+                                                          fileHandler: fileHandler)
+        let generator = tuistGeneratorFactory.createGenerator(modelLoader: modelLoader)
+
         self.init(parser: parser,
                   printer: printer,
                   fileHandler: fileHandler,

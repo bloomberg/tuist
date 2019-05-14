@@ -17,7 +17,7 @@ final class BinaryLocator: BinaryLocating {
     /// Initializes the binary locator with its attributes.
     ///
     /// - Parameter fileHandler: File handler instance to interact with the file system.
-    init(fileHandler: FileHandling = FileHandler()) {
+    init(fileHandler: FileHandling) {
         self.fileHandler = fileHandler
     }
 

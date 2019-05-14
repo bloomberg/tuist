@@ -115,7 +115,7 @@ public class TestAction: Codable {
                 config: BuildConfiguration = .debug,
                 coverage: Bool = false,
                 preActions: [ExecutionAction] = [],
-                postActions: [ExecutionAction] = []){
+                postActions: [ExecutionAction] = []) {
         self.targets = targets
         self.arguments = arguments
         self.config = config

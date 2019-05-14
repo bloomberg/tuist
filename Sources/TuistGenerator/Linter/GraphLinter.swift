@@ -13,8 +13,8 @@ class GraphLinter: GraphLinting {
 
     // MARK: - Init
 
-    init(projectLinter: ProjectLinting = ProjectLinter(),
-         fileHandler: FileHandling = FileHandler()) {
+    init(projectLinter: ProjectLinting,
+         fileHandler: FileHandling) {
         self.projectLinter = projectLinter
         self.fileHandler = fileHandler
     }

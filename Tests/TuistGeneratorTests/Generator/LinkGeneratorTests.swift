@@ -9,7 +9,8 @@ final class LinkGeneratorErrorTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        subject = LinkGenerator()
+        let tuistGeneratorFactory = TuistGeneratorFactory()
+        subject = LinkGenerator(binaryLocator: tuistGeneratorFactory.createBinaryLocator())
     }
 
     func test_linkGeneratorError_description() {

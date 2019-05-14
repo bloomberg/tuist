@@ -28,7 +28,7 @@ final class MultipleConfigurationsIntegrationTests: XCTestCase {
         // Given
         let modelLoader = createModelLoader(projectSettings: Settings(configurations: [:]),
                                             targetSettings: nil)
-        let subject = Generator(modelLoader: modelLoader)
+        let subject = createSubject(modelLoader: modelLoader)
 
         // When / Then
         XCTAssertThrowsError(try subject.generateWorkspace(at: path, config: .default, workspaceFiles: []))
@@ -254,12 +254,17 @@ final class MultipleConfigurationsIntegrationTests: XCTestCase {
 
     private func generateWorkspace(projectSettings: Settings, targetSettings: Settings?) throws {
         let modelLoader = createModelLoader(projectSettings: projectSettings, targetSettings: targetSettings)
-        let subject = Generator(modelLoader: modelLoader)
+        let subject = createSubject(modelLoader: modelLoader)
         _ = try subject.generateWorkspace(at: path, config: .default, workspaceFiles: [])
     }
 
     private func setupTestProject() throws {
         try fileHandler.createFolders(["App/Sources"])
+    }
+
+    private func createSubject(modelLoader: GeneratorModelLoading) -> Generating {
+        let tuistGeneratorFactory = TuistGeneratorFactory()
+        return tuistGeneratorFactory.createGenerator(modelLoader: modelLoader)
     }
 
     @discardableResult

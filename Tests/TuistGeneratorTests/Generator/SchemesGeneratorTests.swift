@@ -12,7 +12,8 @@ final class SchemeGeneratorTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        subject = SchemesGenerator()
+        let tuistGeneratorFactory = TuistGeneratorFactory()
+        subject = SchemesGenerator(fileHandler: tuistGeneratorFactory.fileHandler)
     }
 
     func test_projectBuildAction() {

@@ -14,7 +14,7 @@ final class SettingsLinter: SettingsLinting {
 
     // MARK: - Init
 
-    init(fileHandler: FileHandling = FileHandler()) {
+    init(fileHandler: FileHandling) {
         self.fileHandler = fileHandler
     }
 

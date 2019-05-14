@@ -17,7 +17,7 @@ public protocol EnvironmentControlling: AnyObject {
 /// Local environment controller.
 public class EnvironmentController: EnvironmentControlling {
     /// Returns the default local directory.
-    static let defaultDirectory: AbsolutePath = AbsolutePath(URL(fileURLWithPath: NSHomeDirectory()).path).appending(component: ".tuist")
+    public static let defaultDirectory: AbsolutePath = AbsolutePath(URL(fileURLWithPath: NSHomeDirectory()).path).appending(component: ".tuist")
 
     // MARK: - Attributes
 
@@ -38,7 +38,7 @@ public class EnvironmentController: EnvironmentControlling {
     /// - Parameters:
     ///   - directory: Directory where the Tuist environment files will be stored.
     ///   - fileHandler: File handler instance to perform file operations.
-    init(directory: AbsolutePath, fileHandler: FileHandling) {
+    public init(directory: AbsolutePath, fileHandler: FileHandling) {
         self.directory = directory
         self.fileHandler = fileHandler
         setup()

@@ -26,7 +26,7 @@ final class ConfigGenerator: ConfigGenerating {
 
     // MARK: - Init
 
-    init(fileGenerator: FileGenerating = FileGenerator()) {
+    init(fileGenerator: FileGenerating) {
         self.fileGenerator = fileGenerator
     }
 
