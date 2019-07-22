@@ -285,7 +285,10 @@ extension TuistGenerator.InfoPlist.Value {
 }
 
 extension TuistGenerator.Settings {
-    typealias BuildConfigurationTuple = (TuistGenerator.BuildConfiguration, TuistGenerator.Configuration?)
+    typealias ConfigurationManifest = ProjectDescription.Configuration
+    typealias BuildConfigurationModel = TuistGenerator.BuildConfiguration
+    typealias ConfigurationModel = TuistGenerator.Configuration
+    typealias BuildConfigurationTuple = (BuildConfigurationModel, ConfigurationModel?)
 
     static func from(manifest: ProjectDescription.Settings, path: AbsolutePath) -> TuistGenerator.Settings {
         let base = manifest.base
@@ -297,11 +300,21 @@ extension TuistGenerator.Settings {
                                        defaultSettings: defaultSettings)
     }
 
-    private static func buildConfigurationTuple(from customConfiguration: CustomConfiguration,
+    private static func buildConfigurationTuple(from configuration: ConfigurationManifest,
                                                 path: AbsolutePath) -> BuildConfigurationTuple {
-        let buildConfiguration = TuistGenerator.BuildConfiguration.from(manifest: customConfiguration.buildConfiguration)
-        let configuration = customConfiguration.configuration.map { TuistGenerator.Configuration.from(manifest: $0, path: path) }
+        let buildConfiguration = TuistGenerator.BuildConfiguration(name: configuration.name,
+                                                                   variant: buildConfigurationVariant(from: configuration.variant))
+        let configuration = ConfigurationModel.from(manifest: configuration, path: path)
         return (buildConfiguration, configuration)
+    }
+
+    private static func buildConfigurationVariant(from manifest: ConfigurationManifest.Variant) -> BuildConfigurationModel.Variant {
+        switch manifest {
+        case .debug:
+            return .debug
+        case .release:
+            return .release
+        }
     }
 }
 
@@ -477,19 +490,6 @@ extension TuistGenerator.Arguments {
     static func from(manifest: ProjectDescription.Arguments) -> TuistGenerator.Arguments {
         return Arguments(environment: manifest.environment,
                          launch: manifest.launch)
-    }
-}
-
-extension TuistGenerator.BuildConfiguration {
-    static func from(manifest: ProjectDescription.BuildConfiguration) -> TuistGenerator.BuildConfiguration {
-        let variant: TuistGenerator.BuildConfiguration.Variant
-        switch manifest.variant {
-        case .debug:
-            variant = .debug
-        case .release:
-            variant = .release
-        }
-        return TuistGenerator.BuildConfiguration(name: manifest.name, variant: variant)
     }
 }
 

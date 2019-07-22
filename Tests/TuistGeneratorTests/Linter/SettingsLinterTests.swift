@@ -53,6 +53,22 @@ final class SettingsLinterTests: XCTestCase {
 
     func test_lint_project_when_no_configurations() {
         // Given
+        let settings = Settings(configurations: [
+            .debug(""): nil,
+        ])
+        let project = Project.test(settings: settings)
+
+        // When
+        let got = subject.lint(project: project)
+
+        // Then
+        XCTAssertEqual(got, [
+            LintingIssue(reason: "Custom configurations must define a valid name (can't be empty or left unspecified)", severity: .error),
+        ])
+    }
+
+    func test_lint_project_invalidConfigurationName() {
+        // Given
         let settings = Settings(base: ["A": "B"], configurations: [:])
         let project = Project.test(settings: settings)
 
@@ -73,5 +89,21 @@ final class SettingsLinterTests: XCTestCase {
 
         // Then
         XCTAssertEqual(got, [])
+    }
+
+    func test_lint_target_invalidConfigurationName() {
+        // Given
+        let settings = Settings(configurations: [
+            .debug(""): nil,
+        ])
+        let target = Target.test(settings: settings)
+
+        // When
+        let got = subject.lint(target: target)
+
+        // Then
+        XCTAssertEqual(got, [
+            LintingIssue(reason: "Custom configurations must define a valid name (can't be empty or left unspecified)", severity: .error),
+        ])
     }
 }

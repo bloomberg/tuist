@@ -72,27 +72,19 @@ final class TargetTests: XCTestCase {
                 },
                 "configurations": [
                     {
-                        "buildConfiguration": {
-                            "name": "Debug",
-                            "variant": "debug"
-                        },
-                        "configuration": {
-                            "xcconfig": "config",
-                            "settings": {
-                                "a": "b"
-                            }
+                        "name": "Debug",
+                        "variant": "debug",
+                        "xcconfig": "config",
+                        "settings": {
+                            "a": "b"
                         }
                     },
                     {
-                        "buildConfiguration": {
-                            "name": "Release",
-                            "variant": "release"
-                        },
-                        "configuration": {
-                            "xcconfig": "config",
-                            "settings": {
-                                "a": "b"
-                            }
+                        "name": "Release",
+                        "variant": "release",
+                        "xcconfig": "config",
+                        "settings": {
+                            "a": "b"
                         }
                     },
                 ],
@@ -207,27 +199,19 @@ final class TargetTests: XCTestCase {
                 },
                 "configurations": [
                     {
-                        "buildConfiguration": {
-                            "name": "Debug",
-                            "variant": "debug"
-                        },
-                        "configuration": {
-                            "xcconfig": "config",
-                            "settings": {
-                                "a": "b"
-                            }
+                        "name": "Debug",
+                        "variant": "debug",
+                        "xcconfig": "config",
+                        "settings": {
+                            "a": "b"
                         }
                     },
                     {
-                        "buildConfiguration": {
-                            "name": "Release",
-                            "variant": "release"
-                        },
-                        "configuration": {
-                            "xcconfig": "config",
-                            "settings": {
-                                "a": "b"
-                            }
+                        "name": "Release",
+                        "variant": "release",
+                        "xcconfig": "config",
+                        "settings": {
+                            "a": "b"
                         }
                     },
                 ],

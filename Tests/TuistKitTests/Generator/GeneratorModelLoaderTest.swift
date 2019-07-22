@@ -19,7 +19,6 @@ class GeneratorModelLoaderTest: XCTestCase {
     typealias TestActionManifest = ProjectDescription.TestAction
     typealias RunActionManifest = ProjectDescription.RunAction
     typealias ArgumentsManifest = ProjectDescription.Arguments
-    typealias BuildConfigurationManifest = ProjectDescription.BuildConfiguration
 
     var manifestTargetGenerator: MockManifestTargetGenerator!
     var fileHandler: MockFileHandler!
@@ -553,20 +552,21 @@ class GeneratorModelLoaderTest: XCTestCase {
         XCTAssertEqual(settings.base, manifest.base, file: file, line: line)
 
         let sortedConfigurations = settings.configurations.sorted { (l, r) -> Bool in l.key.name < r.key.name }
-        let sortedManifsetConfigurations = manifest.configurations.sorted(by: { $0.buildConfiguration.name < $1.buildConfiguration.name })
+        let sortedManifsetConfigurations = manifest.configurations.sorted(by: { $0.name < $1.name })
         for (configuration, manifestConfiguration) in zip(sortedConfigurations, sortedManifsetConfigurations) {
             assert(configuration: configuration, matches: manifestConfiguration, at: path, file: file, line: line)
         }
     }
 
     func assert(configuration: (TuistGenerator.BuildConfiguration, TuistGenerator.Configuration?),
-                matches manifest: ProjectDescription.CustomConfiguration,
+                matches manifest: ProjectDescription.Configuration,
                 at path: AbsolutePath,
                 file: StaticString = #file,
                 line: UInt = #line) {
-        XCTAssertTrue(configuration.0 == manifest.buildConfiguration, file: file, line: line)
-        XCTAssertEqual(configuration.1?.settings, manifest.configuration?.settings, file: file, line: line)
-        XCTAssertEqual(configuration.1?.xcconfig, manifest.configuration?.xcconfig.map { path.appending(RelativePath($0)) }, file: file, line: line)
+        XCTAssertTrue(configuration.0.name == manifest.name, file: file, line: line)
+        XCTAssertTrue(configuration.0.variant == manifest.variant, file: file, line: line)
+        XCTAssertEqual(configuration.1?.settings, manifest.settings, file: file, line: line)
+        XCTAssertEqual(configuration.1?.xcconfig, manifest.xcconfig.map { path.appending(RelativePath($0)) }, file: file, line: line)
     }
 
     func assert(coreDataModels: [TuistGenerator.CoreDataModel],
@@ -684,13 +684,13 @@ private func == (_ lhs: TuistGenerator.Product,
     return map[lhs] == rhs
 }
 
-private func == (_ lhs: TuistGenerator.BuildConfiguration,
-                 _ rhs: ProjectDescription.BuildConfiguration) -> Bool {
-    let map: [TuistGenerator.BuildConfiguration: ProjectDescription.BuildConfiguration] = [
+private func == (_ lhs: TuistGenerator.BuildConfiguration.Variant,
+                 _ rhs: ProjectDescription.Configuration.Variant) -> Bool {
+    let map: [TuistGenerator.BuildConfiguration.Variant: ProjectDescription.Configuration.Variant] = [
         .debug: .debug,
         .release: .release,
     ]
-    return map[lhs] == rhs && lhs.name == rhs.name
+    return map[lhs] == rhs
 }
 
 extension AbsolutePath: ExpressibleByStringLiteral {

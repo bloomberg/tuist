@@ -24,6 +24,7 @@ final class SettingsLinter: SettingsLinting {
         var issues: [LintingIssue] = []
         issues.append(contentsOf: lintConfigFilesExist(settings: project.settings))
         issues.append(contentsOf: lintNonEmptyConfig(project: project))
+        issues.append(contentsOf: lintConfigNames(settings: project.settings))
         return issues
     }
 
@@ -31,11 +32,12 @@ final class SettingsLinter: SettingsLinting {
         var issues: [LintingIssue] = []
         if let settings = target.settings {
             issues.append(contentsOf: lintConfigFilesExist(settings: settings))
+            issues.append(contentsOf: lintConfigNames(settings: settings))
         }
         return issues
     }
 
-    // MARK: - Fileprivate
+    // MARK: - private
 
     private func lintConfigFilesExist(settings: Settings) -> [LintingIssue] {
         var issues: [LintingIssue] = []
@@ -58,5 +60,18 @@ final class SettingsLinter: SettingsLinting {
             return [LintingIssue(reason: "The project at path \(project.path.pathString) has no configurations", severity: .error)]
         }
         return []
+    }
+
+    private func lintConfigNames(settings: Settings) -> [LintingIssue] {
+        let configurationNames = settings.configurations.keys.map(\.name)
+        let invalidNames = configurationNames.filter { !validConfigurationName(name: $0) }
+
+        return invalidNames.map { _ in
+            LintingIssue(reason: "Custom configurations must define a valid name (can't be empty or left unspecified)", severity: .error)
+        }
+    }
+
+    private func validConfigurationName(name: String) -> Bool {
+        return !name.isEmpty
     }
 }

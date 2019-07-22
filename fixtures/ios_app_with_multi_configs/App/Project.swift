@@ -1,6 +1,6 @@
 import ProjectDescription
 
-let configurations: [CustomConfiguration] = [
+let configurations: [Configuration] = [
     .debug(name: "Debug", xcconfig: "../ConfigurationFiles/Debug.xcconfig"),
     .release(name: "Beta", xcconfig: "../ConfigurationFiles/Beta.xcconfig"),
     .release(name: "Release", xcconfig: "../ConfigurationFiles/Release.xcconfig"),
@@ -13,7 +13,7 @@ let settings = Settings(base: [
 let betaScheme = Scheme(name: "App-Beta",
                          shared: true,
                          buildAction: BuildAction(targets: ["App"]),
-                         runAction: RunAction(config: .release(name: "Beta"), executable: "App"))
+                         runAction: RunAction(configurationName: "Beta", executable: "App"))
 
 let project = Project(name: "MainApp",
                       settings: settings,

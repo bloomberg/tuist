@@ -1,6 +1,6 @@
 import ProjectDescription
 
-let configurations: [CustomConfiguration] = [
+let configurations: [Configuration] = [
     .debug(name: "Debug", xcconfig: "../ConfigurationFiles/Debug.xcconfig"),
     .release(name: "Beta", xcconfig: "../ConfigurationFiles/Beta.xcconfig"),
     .release(name: "Release", xcconfig: "../ConfigurationFiles/Release.xcconfig"),

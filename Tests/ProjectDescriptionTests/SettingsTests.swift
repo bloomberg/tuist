@@ -24,7 +24,7 @@ final class SettingsTests: XCTestCase {
         // Then
         let decoded = try decoder.decode(Settings.self, from: data)
         XCTAssertEqual(decoded, subject)
-        XCTAssertEqual(decoded.configurations.map(\.buildConfiguration.name), [
+        XCTAssertEqual(decoded.configurations.map(\.name), [
             "Debug",
             "Release",
         ])
@@ -32,7 +32,7 @@ final class SettingsTests: XCTestCase {
 
     func test_codable_multi_configs() throws {
         // Given
-        let configurations: [CustomConfiguration] = [
+        let configurations: [Configuration] = [
             .debug(),
             .debug(name: "CustomDebug", settings: ["CUSTOM_FLAG": "Debug"], xcconfig: "debug.xcconfig"),
             .release(),
@@ -47,7 +47,7 @@ final class SettingsTests: XCTestCase {
         // Then
         let decoded = try decoder.decode(Settings.self, from: data)
         XCTAssertEqual(decoded, subject)
-        XCTAssertEqual(decoded.configurations.map(\.buildConfiguration.name), [
+        XCTAssertEqual(decoded.configurations.map(\.name), [
             "Debug",
             "CustomDebug",
             "Release",
