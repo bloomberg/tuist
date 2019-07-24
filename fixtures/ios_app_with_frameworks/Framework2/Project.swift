@@ -32,5 +32,6 @@ let project = Project(name: "Framework2",
                                  sources: "Tests/**",
                                  dependencies: [
                                      .target(name: "Framework2-iOS"),
+                                     .project(target: "Framework1", path: "../Framework1")
                           ]),
 ])
