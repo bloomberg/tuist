@@ -15,7 +15,7 @@ class ManifestLinterTests: XCTestCase {
 
     func test_lint_project_duplicateConfigurationNames() {
         // Given
-        let settings = Settings(configurations: [
+        let settings: Settings = .settings(configurations: [
             .debug(name: "A"),
             .debug(name: "A"),
             .release(name: "B"),
@@ -37,7 +37,7 @@ class ManifestLinterTests: XCTestCase {
 
     func test_lint_target_duplicateConfigurationNames() {
         // Given
-        let settings = Settings(configurations: [
+        let settings: Settings = .settings(configurations: [
             .debug(name: "A"),
             .debug(name: "A"),
             .release(name: "B"),

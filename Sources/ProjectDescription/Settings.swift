@@ -110,6 +110,16 @@ public struct Settings: Equatable, Codable {
         self.defaultSettings = defaultSettings
     }
 
+    public init(base: [String: String] = [:],
+         configurations: [CustomConfiguration],
+         defaultSettings: DefaultSettings = .recommended) {
+        self.base = base
+        self.configurations = configurations
+        self.defaultSettings = defaultSettings
+    }
+}
+
+public extension Settings {
     /// Creates settings with any number of custom configurations.
     ///
     /// - Parameters:
@@ -123,11 +133,11 @@ public struct Settings: Equatable, Codable {
     ///
     /// - seealso: CustomConfiguration
     /// - seealso: DefaultSettings
-    public init(base: [String: String] = [:],
-                configurations: [CustomConfiguration],
-                defaultSettings: DefaultSettings = .recommended) {
-        self.base = base
-        self.configurations = configurations
-        self.defaultSettings = defaultSettings
+    static func settings(base: [String: String] = [:],
+                         configurations: [CustomConfiguration],
+                         defaultSettings: DefaultSettings = .recommended) -> Settings {
+        return Settings(base: base,
+                        configurations: configurations,
+                        defaultSettings: defaultSettings)
     }
 }

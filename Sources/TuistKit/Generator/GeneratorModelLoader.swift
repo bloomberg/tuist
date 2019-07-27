@@ -32,7 +32,9 @@ class GeneratorModelLoader: GeneratorModelLoading {
     private let manifestTargetGenerator: ManifestTargetGenerating?
     private let printer: Printing
     private let manifestLinter: ManifestLinting
-
+    private let modelEnricher: ModelEnriching
+    private var configManifestCache = [AbsolutePath: TuistConfigManifest]()
+    
     init(fileHandler: FileHandling,
          manifestLoader: GraphManifestLoading,
          manifestLinter: ManifestLinting,
@@ -42,6 +44,7 @@ class GeneratorModelLoader: GeneratorModelLoading {
         self.manifestLoader = manifestLoader
         self.manifestLinter = manifestLinter
         self.manifestTargetGenerator = manifestTargetGenerator
+        self.modelEnricher = ModelEnricher(manifestTargetGenerator: manifestTargetGenerator) // TODO: pass this in
         self.printer = printer
     }
 
@@ -53,7 +56,8 @@ class GeneratorModelLoader: GeneratorModelLoading {
     /// - Throws: Error encountered during the loading process (e.g. Missing project)
     func loadProject(at path: AbsolutePath) throws -> TuistGenerator.Project {
         let manifest = try manifestLoader.loadProject(at: path)
-
+        let tuistConfig = try loadTuistConfigManifest(at: path) ?? TuistConfigManifest(path: path, manifest: .default)
+        
         try manifestLinter.lint(project: manifest)
             .printAndThrowIfNeeded(printer: printer)
 
@@ -61,16 +65,8 @@ class GeneratorModelLoader: GeneratorModelLoading {
                                                       path: path,
                                                       fileHandler: fileHandler,
                                                       printer: printer)
-        let tuistConfig = try loadTuistConfig(at: path)
-
-        if let manifestTargetGenerator = manifestTargetGenerator, tuistConfig.generationOptions.contains(.generateManifest) {
-            let manifestTarget = try manifestTargetGenerator.generateManifestTarget(for: project.name,
-                                                                                    at: path)
-            return project.adding(target: manifestTarget)
-
-        } else {
-            return project
-        }
+        
+        return try modelEnricher.enrich(model: project, using: tuistConfig)
     }
 
     func loadWorkspace(at path: AbsolutePath) throws -> TuistGenerator.Workspace {
@@ -89,12 +85,25 @@ class GeneratorModelLoader: GeneratorModelLoading {
     /// - Returns: The tuistconfig loaded from the specified path
     /// - Throws: Error encountered during the loading process (e.g. Missing tuistconfig)
     func loadTuistConfig(at path: AbsolutePath) throws -> TuistGenerator.TuistConfig {
-        guard let tuistConfigPath = locateDirectoryTraversingParents(from: path, path: "TuistConfig.swift", fileHandler: fileHandler) else {
-            return TuistGenerator.TuistConfig.default
+        guard let manifest = try loadTuistConfigManifest(at: path) else {
+            return .default
         }
-
+        return try TuistGenerator.TuistConfig.from(manifest: manifest.manifest, path: path)
+    }
+    
+    private func loadTuistConfigManifest(at path: AbsolutePath) throws -> TuistConfigManifest? {
+        if let manifest = configManifestCache[path] {
+            return manifest
+        }
+        
+        guard let tuistConfigPath = locateDirectoryTraversingParents(from: path, path: "TuistConfig.swift", fileHandler: fileHandler) else {
+            return nil
+        }
+        
         let manifest = try manifestLoader.loadTuistConfig(at: tuistConfigPath.parentDirectory)
-        return try TuistGenerator.TuistConfig.from(manifest: manifest, path: path)
+        let manifestWithPath = TuistConfigManifest(path: tuistConfigPath.parentDirectory, manifest: manifest)
+        configManifestCache[path] = manifestWithPath
+        return manifestWithPath
     }
 
     /// Traverses the parent directories until the given path is found.
@@ -103,7 +112,7 @@ class GeneratorModelLoader: GeneratorModelLoading {
     ///   - from: A path to a directory from which search the TuistConfig.swift.
     ///   - fileHandler: An instance to interact with the file system.
     /// - Returns: The found path.
-    fileprivate func locateDirectoryTraversingParents(from: AbsolutePath, path: String, fileHandler: FileHandling) -> AbsolutePath? {
+    private func locateDirectoryTraversingParents(from: AbsolutePath, path: String, fileHandler: FileHandling) -> AbsolutePath? {
         let tuistConfigPath = from.appending(component: path)
 
         if fileHandler.exists(tuistConfigPath) {
@@ -252,6 +261,16 @@ extension TuistGenerator.Project {
                        settings: settings,
                        filesGroup: filesGroup,
                        targets: targets + [target],
+                       schemes: schemes,
+                       additionalFiles: additionalFiles)
+    }
+    
+    func replacing(settings: TuistGenerator.Settings) -> TuistGenerator.Project {
+        return Project(path: path,
+                       name: name,
+                       settings: settings,
+                       filesGroup: filesGroup,
+                       targets: targets,
                        schemes: schemes,
                        additionalFiles: additionalFiles)
     }

@@ -11,12 +11,22 @@ public class TuistConfig: Codable {
 
     /// Generation options.
     public let generationOptions: [GenerationOption]
+    public let sharedConfigurations: [CustomConfiguration]?
 
     /// Initializes the tuist cofiguration.
     ///
     /// - Parameter generationOptions: Generation options.
-    public init(generationOptions: [GenerationOption]) {
+    /// - Parameter sharedConfigurations: Configurations to apply to all projects that use this configuration.
+    public init(generationOptions: [GenerationOption],
+                sharedConfigurations: [CustomConfiguration]? = nil) {
         self.generationOptions = generationOptions
+        self.sharedConfigurations = sharedConfigurations
         dumpIfNeeded(self)
+    }
+}
+
+public extension TuistConfig {
+    static var `default`: TuistConfig {
+        return TuistConfig(generationOptions: [.generateManifest])
     }
 }
