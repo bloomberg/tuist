@@ -9,8 +9,8 @@ public final class TuistGeneratorAssembly: Assembly {
     public func assemble(container c: Container) {
         // Public
         c.register(Generating.self) { (r: Resolver, modelLoader: GeneratorModelLoading) in
-            Generator(graphLoader: r.resolve(GraphLoading.self, argument: modelLoader)!,
-                      workspaceGenerator: r.resolve(WorkspaceGenerating.self)!)
+            Generator(graphLoader: r.get(GraphLoading.self, argument: modelLoader),
+                      workspaceGenerator: r.get(WorkspaceGenerating.self))
         }
 
         // Internals
@@ -18,63 +18,63 @@ public final class TuistGeneratorAssembly: Assembly {
         c.register(Printing.self) { _ in Printer() }.inObjectScope(.container)
         c.register(FileHandling.self) { _ in FileHandler() }.inObjectScope(.container)
         c.register(GraphLinting.self) { r in
-            GraphLinter(projectLinter: r.resolve(ProjectLinting.self)!,
-                        fileHandler: r.resolveFileHandler())
+            GraphLinter(projectLinter: r.get(ProjectLinting.self),
+                        fileHandler: r.getFileHandler())
         }
         c.register(ProjectLinting.self) { r in
-            ProjectLinter(targetLinter: r.resolve(TargetLinting.self)!,
-                          settingsLinter: r.resolve(SettingsLinting.self)!)
+            ProjectLinter(targetLinter: r.get(TargetLinting.self),
+                          settingsLinter: r.get(SettingsLinting.self))
         }
         c.register(TargetLinting.self) { r in
-            TargetLinter(settingsLinter: r.resolve(SettingsLinting.self)!,
-                         fileHandler: r.resolveFileHandler(),
-                         targetActionLinter: r.resolve(TargetActionLinting.self)!)
+            TargetLinter(settingsLinter: r.get(SettingsLinting.self),
+                         fileHandler: r.getFileHandler(),
+                         targetActionLinter: r.get(TargetActionLinting.self))
         }
         c.register(TargetActionLinting.self) { r in
-            TargetActionLinter(system: r.resolveSystem(),
-                               fileHandler: r.resolveFileHandler())
+            TargetActionLinter(system: r.getSystem(),
+                               fileHandler: r.getFileHandler())
         }
         c.register(SettingsLinting.self) { r in
-            SettingsLinter(fileHandler: r.resolveFileHandler())
+            SettingsLinter(fileHandler: r.getFileHandler())
         }
         c.register(GraphLoading.self) { (r: Resolver, modelLoader: GeneratorModelLoading) in
-            GraphLoader(linter: r.resolve(GraphLinting.self)!,
-                        printer: r.resolvePrinter(),
-                        fileHandler: r.resolveFileHandler(),
+            GraphLoader(linter: r.get(GraphLinting.self),
+                        printer: r.getPrinter(),
+                        fileHandler: r.getFileHandler(),
                         modelLoader: modelLoader)
         }
         c.register(WorkspaceGenerating.self) { r in
-            WorkspaceGenerator(system: r.resolveSystem(),
-                               printer: r.resolvePrinter(),
-                               projectDirectoryHelper: r.resolve(ProjectDirectoryHelping.self)!,
-                               projectGenerator: r.resolve(ProjectGenerating.self)!,
-                               fileHandler: r.resolveFileHandler(),
-                               workspaceStructureGenerator: r.resolve(WorkspaceStructureGenerating.self)!)
+            WorkspaceGenerator(system: r.getSystem(),
+                               printer: r.getPrinter(),
+                               projectDirectoryHelper: r.get(ProjectDirectoryHelping.self),
+                               projectGenerator: r.get(ProjectGenerating.self),
+                               fileHandler: r.getFileHandler(),
+                               workspaceStructureGenerator: r.get(WorkspaceStructureGenerating.self))
         }
         c.register(ProjectDirectoryHelping.self) { r in
-            ProjectDirectoryHelper(environmentController: r.resolve(EnvironmentControlling.self)!,
-                                   fileHandler: r.resolveFileHandler())
+            ProjectDirectoryHelper(environmentController: r.get(EnvironmentControlling.self),
+                                   fileHandler: r.getFileHandler())
         }
         c.register(EnvironmentControlling.self) { r in
             EnvironmentController(directory: EnvironmentController.defaultDirectory,
-                                  fileHandler: r.resolveFileHandler())
+                                  fileHandler: r.getFileHandler())
         }
         c.register(ProjectGenerating.self) { r in
-            ProjectGenerator(targetGenerator: r.resolve(TargetGenerating.self)!,
-                             configGenerator: r.resolve(ConfigGenerating.self)!,
-                             schemesGenerator: r.resolve(SchemesGenerating.self)!,
-                             printer: r.resolvePrinter(),
-                             system: r.resolveSystem(),
-                             fileHandler: r.resolveFileHandler())
+            ProjectGenerator(targetGenerator: r.get(TargetGenerating.self),
+                             configGenerator: r.get(ConfigGenerating.self),
+                             schemesGenerator: r.get(SchemesGenerating.self),
+                             printer: r.getPrinter(),
+                             system: r.getSystem(),
+                             fileHandler: r.getFileHandler())
         }
         c.register(TargetGenerating.self) { r in
-            TargetGenerator(configGenerator: r.resolve(ConfigGenerating.self)!,
-                            fileGenerator: r.resolve(FileGenerating.self)!,
-                            buildPhaseGenerator: r.resolve(BuildPhaseGenerating.self)!,
-                            linkGenerator: r.resolve(LinkGenerating.self)!)
+            TargetGenerator(configGenerator: r.get(ConfigGenerating.self),
+                            fileGenerator: r.get(FileGenerating.self),
+                            buildPhaseGenerator: r.get(BuildPhaseGenerating.self),
+                            linkGenerator: r.get(LinkGenerating.self))
         }
         c.register(ConfigGenerating.self) { r in
-            ConfigGenerator(fileGenerator: r.resolve(FileGenerating.self)!)
+            ConfigGenerator(fileGenerator: r.get(FileGenerating.self))
         }
         c.register(FileGenerating.self) { r in
             FileGenerator()
@@ -83,31 +83,48 @@ public final class TuistGeneratorAssembly: Assembly {
             BuildPhaseGenerator()
         }
         c.register(LinkGenerating.self) { r in
-            LinkGenerator(binaryLocator: r.resolve(BinaryLocating.self)!)
+            LinkGenerator(binaryLocator: r.get(BinaryLocating.self))
         }
         c.register(BinaryLocating.self) { r in
-            BinaryLocator(fileHandler: r.resolveFileHandler())
+            BinaryLocator(fileHandler: r.getFileHandler())
         }
         c.register(SchemesGenerating.self) { r in
-            SchemesGenerator(fileHandler: r.resolveFileHandler())
+            SchemesGenerator(fileHandler: r.getFileHandler())
         }
         c.register(WorkspaceStructureGenerating.self) { r in
-            WorkspaceStructureGenerator(fileHandler: r.resolveFileHandler())
+            WorkspaceStructureGenerator(fileHandler: r.getFileHandler())
         }
     }
 }
 
 private extension Resolver {
 
-    func resolveFileHandler() -> FileHandling {
+    func getFileHandler() -> FileHandling {
         return resolve(FileHandling.self)!
     }
 
-    func resolvePrinter() -> Printing {
+    func getPrinter() -> Printing {
         return resolve(Printing.self)!
     }
 
-    func resolveSystem() -> Systeming {
+    func getSystem() -> Systeming {
         return resolve(Systeming.self)!
+    }
+}
+
+private extension Resolver {
+
+    func get<Service>(_ serviceType: Service.Type) -> Service {
+        guard let service = resolve(serviceType) else {
+            fatalError("Service not found")
+        }
+        return service
+    }
+
+    func get<Service, Arg1>(_ serviceType: Service.Type, argument: Arg1) -> Service {
+        guard let service = resolve(serviceType, argument: argument) else {
+            fatalError("Service not found")
+        }
+        return service
     }
 }
