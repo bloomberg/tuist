@@ -1,6 +1,7 @@
 import Basic
 import Foundation
 import SPMUtility
+import Swinject
 import TuistCore
 import TuistGenerator
 
@@ -33,13 +34,17 @@ class GenerateCommand: NSObject, Command {
                                                  deprecator: Deprecator(printer: printer))
         let manifestTargetGenerator = ManifestTargetGenerator(manifestLoader: manifestLoader,
                                                               resourceLocator: resourceLocator)
-        let modelLoader = GeneratorModelLoader(fileHandler: fileHandler,
-                                               manifestLoader: manifestLoader,
-                                               manifestTargetGenerator: manifestTargetGenerator)
-        let tuistGeneratorFactory = TuistGeneratorFactory(system: system,
-                                                          printer: printer,
-                                                          fileHandler: fileHandler)
-        let generator = tuistGeneratorFactory.createGenerator(modelLoader: modelLoader)
+        let modelLoader: GeneratorModelLoading = GeneratorModelLoader(fileHandler: fileHandler,
+                                                                      manifestLoader: manifestLoader,
+                                                                      manifestTargetGenerator: manifestTargetGenerator)
+        let assembler = Assembler([TuistGeneratorAssembly()])
+
+//        let tuistGeneratorFactory = TuistGeneratorFactory(system: system,
+//                                                          printer: printer,
+//                                                          fileHandler: fileHandler)
+//        let generator = tuistGeneratorFactory.createGenerator(modelLoader: modelLoader)
+
+        let generator = assembler.resolver.resolve(Generating.self, argument: modelLoader)!
 
         self.init(parser: parser,
                   printer: printer,
