@@ -27,6 +27,7 @@ public final class CommandRegistry {
         register(command: UpCommand.self)
         register(command: GraphCommand.self)
         register(rawCommand: BuildCommand.self)
+        register(command: EditCommand.self)
     }
 
     init(errorHandler: ErrorHandling,
