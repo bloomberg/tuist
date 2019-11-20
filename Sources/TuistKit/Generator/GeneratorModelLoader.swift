@@ -615,7 +615,7 @@ extension TuistCore.BuildAction {
     static func from(manifest: ProjectDescription.BuildAction) -> TuistCore.BuildAction {
         let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
         let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
-        let targets: [TuistCore.BuildActionTarget] = manifest.targets.map {
+        let targets: [TuistCore.TargetReference] = manifest.targets.map {
             .project(path: nil, target: $0)
         }
         return TuistCore.BuildAction(targets: targets, preActions: preActions, postActions: postActions)
@@ -624,7 +624,7 @@ extension TuistCore.BuildAction {
     static func from(manifest: WorkspaceDescription.BuildAction) -> TuistCore.BuildAction {
         let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
         let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
-        let targets: [TuistCore.BuildActionTarget] = manifest.targets.map {
+        let targets: [TuistCore.TargetReference] = manifest.targets.map {
             .project(path: $0.projectPath, target: $0.targetName)
         }
         return TuistCore.BuildAction(targets: targets, preActions: preActions, postActions: postActions)
@@ -693,11 +693,20 @@ extension TuistCore.RunAction {
 
 extension TuistCore.ExecutionAction {
     static func from(manifest: ProjectDescription.ExecutionAction) -> TuistCore.ExecutionAction {
-        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: manifest.target)
+        let targetReference: TuistCore.TargetReference? = manifest.target.map { .target(name: $0) }
+        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targetReference)
     }
     
     static func from(manifest: WorkspaceDescription.ExecutionAction) -> TuistCore.ExecutionAction {
-        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: manifest.target)
+        let targetReference: TuistCore.TargetReference? = manifest.target.map { .from(manifest: $0) }
+        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targetReference)
+    }
+}
+
+extension TuistCore.TargetReference {
+    static func from(manifest: WorkspaceDescription.TargetReference) -> TuistCore.TargetReference {
+        // TODO: Change to absolute paths
+        return TargetReference(projectPath: manifest.projectPath, name: manifest.targetName)
     }
 }
 

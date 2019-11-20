@@ -62,13 +62,13 @@ public class ExecutionAction: Equatable {
 
     public let title: String
     public let scriptText: String
-    public let target: String?
+    public let target: TargetReference?
 
     // MARK: - Init
 
     public init(title: String,
                 scriptText: String,
-                target: String?) {
+                target: TargetReference?) {
         self.title = title
         self.scriptText = scriptText
         self.target = target
@@ -81,38 +81,39 @@ public class ExecutionAction: Equatable {
     }
 }
 
-public struct BuildActionTarget: Equatable, Codable {
+public class TargetReference: Equatable {
     public var projectPath: String?
-    public var targetName: String
+    public var name: String
 
-    public static func project(path: String?, target: String) -> BuildActionTarget {
-        return .init(projectPath: path, targetName: target)
+    public static func project(path: String?, target: String) -> TargetReference {
+        return .init(projectPath: path, name: target)
     }
 
-    public static func target(name: String) -> BuildActionTarget {
-        return .init(projectPath: nil, targetName: name)
+    public static func target(name: String) -> TargetReference {
+        return .init(projectPath: nil, name: name)
     }
-}
-
-extension BuildActionTarget: ExpressibleByStringLiteral {
-
-    public typealias StringLiteralType = String
-
-    public init(stringLiteral: String) {
-        self = .init(targetName: stringLiteral)
+    
+    public init(projectPath: String?, name: String) {
+        self.projectPath = projectPath
+        self.name = name
+    }
+    
+    public static func == (lhs: TargetReference, rhs: TargetReference) -> Bool {
+        return lhs.projectPath == rhs.projectPath &&
+            lhs.name == rhs.name
     }
 }
 
 public class BuildAction: Equatable {
     // MARK: - Attributes
 
-    public let targets: [BuildActionTarget]
+    public let targets: [TargetReference]
     public let preActions: [ExecutionAction]
     public let postActions: [ExecutionAction]
 
     // MARK: - Init
 
-    public init(targets: [BuildActionTarget] = [],
+    public init(targets: [TargetReference] = [],
                 preActions: [ExecutionAction] = [],
                 postActions: [ExecutionAction] = []) {
         self.targets = targets

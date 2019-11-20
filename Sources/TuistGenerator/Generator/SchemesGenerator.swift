@@ -256,9 +256,9 @@ final class SchemesGenerator: SchemesGenerating {
         var postActions: [XCScheme.ExecutionAction] = []
 
         buildAction.targets.forEach { buildActionTarget in
-            guard let target = project.targets.first(where: { $0.name == buildActionTarget.targetName }) else { return }
+            guard let target = project.targets.first(where: { $0.name == buildActionTarget.name }) else { return }
         
-            guard let pbxTarget = generatedProject.targets[buildActionTarget.targetName] else { return }
+            guard let pbxTarget = generatedProject.targets[buildActionTarget.name] else { return }
             let buildableReference = self.targetBuildableReference(target: target,
                                                                    pbxTarget: pbxTarget,
                                                                    projectPath: generatedProject.name)
@@ -291,7 +291,7 @@ final class SchemesGenerator: SchemesGenerating {
     func schemeLaunchAction(scheme: Scheme,
                             project: Project,
                             generatedProject: GeneratedProject) -> XCScheme.LaunchAction? {
-        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.targetName }) else { return nil }
+        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.name }) else { return nil }
 
         if let executable = scheme.runAction?.executable {
             guard let runableTarget = project.targets.first(where: { $0.name == executable }) else { return nil }
@@ -336,7 +336,7 @@ final class SchemesGenerator: SchemesGenerating {
                              project: Project,
                              generatedProject: GeneratedProject) -> XCScheme.ProfileAction? {
         
-        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.targetName }) else { return nil }
+        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.name }) else { return nil }
 
         if let executable = scheme.runAction?.executable {
             guard let runableTarget = project.targets.first(where: { $0.name == executable }) else { return nil }
@@ -386,7 +386,7 @@ final class SchemesGenerator: SchemesGenerating {
                                                         title: action.title,
                                                         environmentBuildable: nil)
 
-            schemeAction.environmentBuildable = schemeBuildableReference(targetName: action.target,
+            schemeAction.environmentBuildable = schemeBuildableReference(targetName: action.target?.name,
                                                                          project: project,
                                                                          generatedProject: generatedProject)
             schemeActions.append(schemeAction)

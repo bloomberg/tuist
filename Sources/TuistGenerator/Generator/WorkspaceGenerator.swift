@@ -44,7 +44,7 @@ final class WorkspaceGenerator: WorkspaceGenerating {
     private let projectGenerator: ProjectGenerating
     private let workspaceStructureGenerator: WorkspaceStructureGenerating
     private let cocoapodsInteractor: CocoaPodsInteracting
-    private let schemesGenerator: SchemesGenerating
+    private let schemesGenerator: WorkspaceSchemesGenerating
 
     // MARK: - Init
 
@@ -57,13 +57,13 @@ final class WorkspaceGenerator: WorkspaceGenerating {
         self.init(projectGenerator: projectGenerator,
                   workspaceStructureGenerator: WorkspaceStructureGenerator(),
                   cocoapodsInteractor: cocoapodsInteractor,
-                  schemesGenerator: SchemesGenerator())
+                  schemesGenerator: WorkspaceSchemesGenerator())
     }
 
     init(projectGenerator: ProjectGenerating,
          workspaceStructureGenerator: WorkspaceStructureGenerating,
          cocoapodsInteractor: CocoaPodsInteracting,
-         schemesGenerator: SchemesGenerating) {
+         schemesGenerator: WorkspaceSchemesGenerating) {
         self.projectGenerator = projectGenerator
         self.workspaceStructureGenerator = workspaceStructureGenerator
         self.cocoapodsInteractor = cocoapodsInteractor
@@ -140,6 +140,7 @@ final class WorkspaceGenerator: WorkspaceGenerating {
                               xcworkspacePath: AbsolutePath,
                               graph: Graphing,
                               generatedProjects: [AbsolutePath: GeneratedProject]) throws {
+        
         
         // TODO: use new api
 //        try schemesGenerator.generateWorkspaceSchemes(workspace: workspace,
