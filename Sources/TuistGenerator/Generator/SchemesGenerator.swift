@@ -47,7 +47,7 @@ final class SchemesGenerator: SchemesGenerating {
                                     buildAction: BuildAction(targets: [.target(name: target.name)]),
                                     testAction: TestAction(targets: [.target(name: target.name)], configurationName: buildConfiguration),
                                     runAction: RunAction(configurationName: buildConfiguration,
-                                                         executable: target.productName,
+                                                         executable: .target(name: target.productName),
                                                          arguments: Arguments(environment: target.environment)))
 
                 try generateScheme(scheme: scheme,
@@ -294,7 +294,7 @@ final class SchemesGenerator: SchemesGenerating {
         guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.name }) else { return nil }
 
         if let executable = scheme.runAction?.executable {
-            guard let runableTarget = project.targets.first(where: { $0.name == executable }) else { return nil }
+            guard let runableTarget = project.targets.first(where: { $0.name == executable.name }) else { return nil }
             target = runableTarget
         }
 
@@ -339,7 +339,7 @@ final class SchemesGenerator: SchemesGenerating {
         guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.name }) else { return nil }
 
         if let executable = scheme.runAction?.executable {
-            guard let runableTarget = project.targets.first(where: { $0.name == executable }) else { return nil }
+            guard let runableTarget = project.targets.first(where: { $0.name == executable.name }) else { return nil }
             target = runableTarget
         }
 

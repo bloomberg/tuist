@@ -176,13 +176,13 @@ public class RunAction: Equatable {
     // MARK: - Attributes
 
     public let configurationName: String
-    public let executable: String?
+    public let executable: TargetReference?
     public let arguments: Arguments?
 
     // MARK: - Init
 
     public init(configurationName: String,
-                executable: String? = nil,
+                executable: TargetReference? = nil,
                 arguments: Arguments? = nil) {
         self.configurationName = configurationName
         self.executable = executable

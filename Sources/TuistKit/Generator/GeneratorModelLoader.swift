@@ -672,21 +672,29 @@ extension TuistCore.TestAction {
 extension TuistCore.RunAction {
     static func from(manifest: ProjectDescription.RunAction) -> TuistCore.RunAction {
         let configurationName = manifest.configurationName
-        let executable = manifest.executable
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
+        
+        var executableResolved: TuistCore.TargetReference?
+        if let executable = manifest.executable {
+            executableResolved = TargetReference(projectPath: nil, name: executable)
+        }
 
         return RunAction(configurationName: configurationName,
-                         executable: executable,
+                         executable: executableResolved,
                          arguments: arguments)
     }
     
     static func from(manifest: WorkspaceDescription.RunAction) -> TuistCore.RunAction {
         let configurationName = manifest.configurationName
-        let executable = manifest.executable
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
+        
+        var executableResolved: TuistCore.TargetReference?
+        if let executable = manifest.executable {
+            executableResolved = TargetReference(projectPath: executable.projectPath, name: executable.targetName)
+        }
 
         return RunAction(configurationName: configurationName,
-                         executable: executable,
+                         executable: executableResolved,
                          arguments: arguments)
     }
 }

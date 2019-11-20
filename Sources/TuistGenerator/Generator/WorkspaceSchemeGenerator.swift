@@ -47,11 +47,17 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                                        graph: graph,
                                                        rootPath: workspacePath,
                                                        generatedProjects: generatedProjects)
+        let generatedLaunchAction = try schemeLaunchAction(scheme: scheme,
+                                                           graph: graph,
+                                                           rootPath: workspacePath,
+                                                           generatedProjects: generatedProjects)
         
         let scheme = XCScheme(name: scheme.name,
                               lastUpgradeVersion: WorkspaceSchemesGenerator.defaultLastUpgradeVersion,
                               version: WorkspaceSchemesGenerator.defaultVersion,
-                              buildAction: generatedBuildAction)
+                              buildAction: generatedBuildAction,
+                              testAction: generatedTestAction,
+                              launchAction: generatedLaunchAction)
         try scheme.write(path: schemePath.path, override: true)
     }
     
@@ -171,6 +177,43 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                    commandlineArguments: args,
                                    environmentVariables: environments)
     }
+    
+    func schemeLaunchAction(scheme: Scheme,
+                            graph: Graphing,
+                            rootPath: AbsolutePath,
+                            generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.LaunchAction? {
+        
+        guard let executable = scheme.runAction?.executable,
+            let (targetNode, generatedProject) = try lookupTarget(reference: executable, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath) else {
+                return nil
+        }
+        
+        guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }
+
+        var buildableProductRunnable: XCScheme.BuildableProductRunnable?
+        var macroExpansion: XCScheme.BuildableReference?
+        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
+        if targetNode.target.product.runnable {
+            buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
+        } else {
+            macroExpansion = buildableReference
+        }
+
+        var commandlineArguments: XCScheme.CommandLineArguments?
+        var environments: [XCScheme.EnvironmentVariable]?
+
+        if let arguments = scheme.runAction?.arguments {
+            commandlineArguments = XCScheme.CommandLineArguments(arguments: commandlineArgruments(arguments.launch))
+            environments = environmentVariables(arguments.environment)
+        }
+
+        let buildConfiguration = scheme.runAction?.configurationName ?? defaultDebugBuildConfigurationName(in: targetNode.project)
+        return XCScheme.LaunchAction(runnable: buildableProductRunnable,
+                                     buildConfiguration: buildConfiguration,
+                                     macroExpansion: macroExpansion,
+                                     commandlineArguments: commandlineArguments,
+                                     environmentVariables: environments)
+    }
 
         
     /// Returns the scheme buildable reference for a given target.
@@ -196,21 +239,21 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                rootPath: AbsolutePath) throws -> XCScheme.ExecutionAction {
 
         guard let targetReference = action.target,
-                let (target, generatedProject) = try lookupTarget(reference: targetReference,
+                let (targetNode, generatedProject) = try lookupTarget(reference: targetReference,
                                                                   graph: graph,
                                                                   generatedProjects: generatedProjects,
                                                                   rootPath: rootPath) else {
                 return schemeExecutionAction(action: action)
         }
         return schemeExecutionAction(action: action,
-                                     target: target,
+                                     target: targetNode.target,
                                      generatedProject: generatedProject)
     }
     
     private func lookupTarget(reference: TargetReference,
                               graph: Graphing,
                               generatedProjects: [AbsolutePath: GeneratedProject],
-                              rootPath: AbsolutePath) throws -> (Target, GeneratedProject)? {
+                              rootPath: AbsolutePath) throws -> (TargetNode, GeneratedProject)? {
         
         guard let projectPath = reference.projectPath else {
             return nil
@@ -225,7 +268,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
             return nil
         }
         
-        return (targetNode.target, generatedProject)
+        return (targetNode, generatedProject)
     }
     
     func schemeExecutionAction(action: ExecutionAction) -> XCScheme.ExecutionAction {
@@ -265,16 +308,16 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                               graph: Graphing,
                                               generatedProjects: [AbsolutePath: GeneratedProject],
                                               rootPath: AbsolutePath) throws -> XCScheme.BuildableReference? {
-        guard let (target, generatedProject) = try lookupTarget(reference: target,
+        guard let (targetNode, generatedProject) = try lookupTarget(reference: target,
                                                                 graph: graph,
                                                                 generatedProjects: generatedProjects,
                                                                 rootPath: rootPath) else {
             return nil
         }
         
-        guard let pbxTarget = generatedProject.targets[target.name] else { return nil }
+        guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }
 
-        return self.targetBuildableReference(target: target,
+        return self.targetBuildableReference(target: targetNode.target,
                                              pbxTarget: pbxTarget,
                                              projectPath: generatedProject.name)
     }
@@ -323,5 +366,12 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         return environments.map { key, value in
             XCScheme.EnvironmentVariable(variable: key, value: value, enabled: true)
         }
+    }
+    
+    private func defaultDebugBuildConfigurationName(in project: Project) -> String {
+        let debugConfiguration = project.settings.defaultDebugBuildConfiguration()
+        let buildConfiguration = debugConfiguration ?? project.settings.configurations.keys.first
+
+        return buildConfiguration?.name ?? BuildConfiguration.debug.name
     }
 }
