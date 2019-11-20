@@ -81,16 +81,38 @@ public class ExecutionAction: Equatable {
     }
 }
 
+public struct BuildActionTarget: Equatable, Codable {
+    public var projectPath: String?
+    public var targetName: String
+
+    public static func project(path: String?, target: String) -> BuildActionTarget {
+        return .init(projectPath: path, targetName: target)
+    }
+
+    public static func target(name: String) -> BuildActionTarget {
+        return .init(projectPath: nil, targetName: name)
+    }
+}
+
+extension BuildActionTarget: ExpressibleByStringLiteral {
+
+    public typealias StringLiteralType = String
+
+    public init(stringLiteral: String) {
+        self = .init(targetName: stringLiteral)
+    }
+}
+
 public class BuildAction: Equatable {
     // MARK: - Attributes
 
-    public let targets: [String]
+    public let targets: [BuildActionTarget]
     public let preActions: [ExecutionAction]
     public let postActions: [ExecutionAction]
 
     // MARK: - Init
 
-    public init(targets: [String] = [],
+    public init(targets: [BuildActionTarget] = [],
                 preActions: [ExecutionAction] = [],
                 postActions: [ExecutionAction] = []) {
         self.targets = targets

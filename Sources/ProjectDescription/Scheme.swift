@@ -49,7 +49,7 @@ public struct Arguments: Equatable, Codable {
     }
 }
 
-// MARK: - BuildAction
+// MARK: - BuildAction`
 
 public struct BuildAction: Equatable, Codable {
     public let targets: [String]

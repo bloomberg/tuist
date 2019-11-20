@@ -12,8 +12,9 @@ protocol SchemesGenerating {
     ///   - project: Project manifest.
     ///   - generatedProject: Generated Xcode project.
     /// - Throws: A FatalError if the generation of the schemes fails.
-    func generateTargetSchemes(project: Project,
-                               generatedProject: GeneratedProject) throws
+    func generateProjectSchemes(project: Project,
+                               generatedProject: GeneratedProject,
+                               graph: Graphing) throws
 }
 
 // swiftlint:disable:next type_body_length
@@ -30,10 +31,10 @@ final class SchemesGenerator: SchemesGenerating {
     ///   - project: Project manifest.
     ///   - generatedProject: Generated Xcode project.
     /// - Throws: A FatalError if the generation of the schemes fails.
-    func generateTargetSchemes(project: Project, generatedProject: GeneratedProject) throws {
+    func generateProjectSchemes(project: Project, generatedProject: GeneratedProject, graph: Graphing) throws {
         /// Generate scheme from manifest
         try project.schemes.forEach { scheme in
-            try generateScheme(scheme: scheme, project: project, generatedProject: generatedProject)
+            try generateScheme(scheme: scheme, project: project, generatedProject: generatedProject, graph: graph)
         }
 
         /// Generate scheme for every targets in Project that is not defined in Manifest
@@ -43,7 +44,7 @@ final class SchemesGenerator: SchemesGenerating {
             if !project.schemes.contains(where: { $0.name == target.name }) {
                 let scheme = Scheme(name: target.name,
                                     shared: true,
-                                    buildAction: BuildAction(targets: [target.name]),
+                                    buildAction: BuildAction(targets: [.target(name: target.name)]),
                                     testAction: TestAction(targets: [target.name], configurationName: buildConfiguration),
                                     runAction: RunAction(configurationName: buildConfiguration,
                                                          executable: target.productName,
@@ -51,25 +52,27 @@ final class SchemesGenerator: SchemesGenerating {
 
                 try generateScheme(scheme: scheme,
                                    project: project,
-                                   generatedProject: generatedProject)
+                                   generatedProject: generatedProject,
+                                   graph: graph)
             }
         }
     }
 
-    /// Generates the scheme.
+    /// Generates the scheme for a project.
     ///
     /// - Parameters:
     ///   - scheme: Scheme manifest.
     ///   - project: Project manifest.
-    ///   - generatedProject: Generated Xcode project.
+    ///   - generatedProjects: Generated Xcode project.
     /// - Throws: An error if the generation fails.
     func generateScheme(scheme: Scheme,
                         project: Project,
-                        generatedProject: GeneratedProject) throws {
-        let schemesDirectory = try createSchemesDirectory(projectPath: generatedProject.path, shared: scheme.shared)
+                        generatedProject: GeneratedProject,
+                        graph: Graphing) throws {
+        let schemesDirectory = try createSchemesDirectory(path: generatedProject.path, shared: scheme.shared)
         let schemePath = schemesDirectory.appending(component: "\(scheme.name).xcscheme")
-
-        let generatedBuildAction = schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
+        
+        let generatedBuildAction = try schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
         let generatedTestAction = schemeTestAction(scheme: scheme, project: project, generatedProject: generatedProject)
         let generatedLaunchAction = schemeLaunchAction(scheme: scheme, project: project, generatedProject: generatedProject)
         let generatedProfileAction = schemeProfileAction(scheme: scheme, project: project, generatedProject: generatedProject)
@@ -102,7 +105,7 @@ final class SchemesGenerator: SchemesGenerating {
             let pbxTarget = generatedProject.targets[target.name]!
             let buildableReference = targetBuildableReference(target: target,
                                                               pbxTarget: pbxTarget,
-                                                              projectName: generatedProject.name)
+                                                              projectPath: generatedProject.name)
             var buildFor: [XCScheme.BuildAction.Entry.BuildFor] = []
             if target.product.testsBundle {
                 buildFor.append(.testing)
@@ -135,7 +138,7 @@ final class SchemesGenerator: SchemesGenerating {
 
             let reference = targetBuildableReference(target: target,
                                                      pbxTarget: pbxTarget,
-                                                     projectName: generatedProject.name)
+                                                     projectPath: generatedProject.name)
             let testable = XCScheme.TestableReference(skipped: false,
                                                       buildableReference: reference)
             testables.append(testable)
@@ -164,7 +167,7 @@ final class SchemesGenerator: SchemesGenerating {
 
             let reference = self.targetBuildableReference(target: target,
                                                           pbxTarget: pbxTarget,
-                                                          projectName: generatedProject.name)
+                                                          projectPath: generatedProject.name)
             codeCoverageTargets.append(reference)
         }
 
@@ -193,7 +196,7 @@ final class SchemesGenerator: SchemesGenerating {
 
             let reference = self.targetBuildableReference(target: target,
                                                           pbxTarget: pbxTarget,
-                                                          projectName: generatedProject.name)
+                                                          projectPath: generatedProject.name)
 
             let testable = XCScheme.TestableReference(skipped: false, buildableReference: reference)
             testables.append(testable)
@@ -243,7 +246,7 @@ final class SchemesGenerator: SchemesGenerating {
     /// - Returns: Scheme build action.
     func schemeBuildAction(scheme: Scheme,
                            project: Project,
-                           generatedProject: GeneratedProject) -> XCScheme.BuildAction? {
+                           generatedProject: GeneratedProject) throws -> XCScheme.BuildAction? {
         guard let buildAction = scheme.buildAction else { return nil }
 
         let buildFor: [XCScheme.BuildAction.Entry.BuildFor] = [
@@ -254,12 +257,13 @@ final class SchemesGenerator: SchemesGenerating {
         var preActions: [XCScheme.ExecutionAction] = []
         var postActions: [XCScheme.ExecutionAction] = []
 
-        buildAction.targets.forEach { name in
-            guard let target = project.targets.first(where: { $0.name == name }) else { return }
-            guard let pbxTarget = generatedProject.targets[name] else { return }
+        buildAction.targets.forEach { buildActionTarget in
+            guard let target = project.targets.first(where: { $0.name == buildActionTarget.targetName }) else { return }
+        
+            guard let pbxTarget = generatedProject.targets[buildActionTarget.targetName] else { return }
             let buildableReference = self.targetBuildableReference(target: target,
                                                                    pbxTarget: pbxTarget,
-                                                                   projectName: generatedProject.name)
+                                                                   projectPath: generatedProject.name)
 
             entries.append(XCScheme.BuildAction.Entry(buildableReference: buildableReference, buildFor: buildFor))
         }
@@ -289,7 +293,7 @@ final class SchemesGenerator: SchemesGenerating {
     func schemeLaunchAction(scheme: Scheme,
                             project: Project,
                             generatedProject: GeneratedProject) -> XCScheme.LaunchAction? {
-        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first }) else { return nil }
+        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.targetName }) else { return nil }
 
         if let executable = scheme.runAction?.executable {
             guard let runableTarget = project.targets.first(where: { $0.name == executable }) else { return nil }
@@ -300,7 +304,7 @@ final class SchemesGenerator: SchemesGenerating {
 
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
-        let buildableReference = targetBuildableReference(target: target, pbxTarget: pbxTarget, projectName: generatedProject.name)
+        let buildableReference = targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
         if target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
         } else {
@@ -333,7 +337,8 @@ final class SchemesGenerator: SchemesGenerating {
     func schemeProfileAction(scheme: Scheme,
                              project: Project,
                              generatedProject: GeneratedProject) -> XCScheme.ProfileAction? {
-        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first }) else { return nil }
+        
+        guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.targetName }) else { return nil }
 
         if let executable = scheme.runAction?.executable {
             guard let runableTarget = project.targets.first(where: { $0.name == executable }) else { return nil }
@@ -344,7 +349,7 @@ final class SchemesGenerator: SchemesGenerating {
 
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
-        let buildableReference = targetBuildableReference(target: target, pbxTarget: pbxTarget, projectName: generatedProject.name)
+        let buildableReference = targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
 
         if target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
@@ -374,7 +379,7 @@ final class SchemesGenerator: SchemesGenerating {
             guard let target = project.targets.first(where: { $0.name == targetName }) else { return nil }
             guard let pbxTarget = generatedProject.targets[targetName] else { return nil }
 
-            return targetBuildableReference(target: target, pbxTarget: pbxTarget, projectName: generatedProject.name)
+            return targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
         }
 
         var schemeActions: [XCScheme.ExecutionAction] = []
@@ -418,10 +423,12 @@ final class SchemesGenerator: SchemesGenerating {
     /// - Parameters:
     ///   - target: Target manifest.
     ///   - pbxTarget: Xcode native target.
-    ///   - projectName: Project name with the .xcodeproj extension.
+    ///   - projectPath: Project name with the .xcodeproj extension.
     /// - Returns: Buildable reference.
-    func targetBuildableReference(target: Target, pbxTarget: PBXNativeTarget, projectName: String) -> XCScheme.BuildableReference {
-        return XCScheme.BuildableReference(referencedContainer: "container:\(projectName)",
+    func targetBuildableReference(target: Target,
+                                  pbxTarget: PBXNativeTarget,
+                                  projectPath: String) -> XCScheme.BuildableReference {
+        return XCScheme.BuildableReference(referencedContainer: "container:\(projectPath)",
                                            blueprint: pbxTarget,
                                            buildableName: target.productNameWithExtension,
                                            blueprintName: target.name,
@@ -449,22 +456,22 @@ final class SchemesGenerator: SchemesGenerating {
     /// If the directory exists it does not re-create it.
     ///
     /// - Parameters:
-    ///   - projectPath: Path to the Xcode project.
+    ///   - path: Path to the Xcode workspace or project.
     ///   - shared: Scheme should be shared or not
     /// - Returns: Path to the schemes directory.
     /// - Throws: A FatalError if the creation of the directory fails.
-    private func createSchemesDirectory(projectPath: AbsolutePath, shared: Bool = true) throws -> AbsolutePath {
-        var path: AbsolutePath!
+    private func createSchemesDirectory(path: AbsolutePath, shared: Bool = true) throws -> AbsolutePath {
+        let schemePath: AbsolutePath
         if shared {
-            path = projectPath.appending(RelativePath("xcshareddata/xcschemes"))
+            schemePath = path.appending(RelativePath("xcshareddata/xcschemes"))
         } else {
             let username = NSUserName()
-            path = projectPath.appending(RelativePath("xcuserdata/\(username).xcuserdatad/xcschemes"))
+            schemePath = path.appending(RelativePath("xcuserdata/\(username).xcuserdatad/xcschemes"))
         }
-        if !FileHandler.shared.exists(path) {
-            try FileHandler.shared.createFolder(path)
+        if !FileHandler.shared.exists(schemePath) {
+            try FileHandler.shared.createFolder(schemePath)
         }
-        return path
+        return schemePath
     }
 
     private func defaultDebugBuildConfigurationName(in project: Project) -> String {
