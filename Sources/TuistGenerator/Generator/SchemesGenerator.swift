@@ -34,7 +34,7 @@ final class SchemesGenerator: SchemesGenerating {
     func generateProjectSchemes(project: Project, generatedProject: GeneratedProject, graph: Graphing) throws {
         /// Generate scheme from manifest
         try project.schemes.forEach { scheme in
-            try generateScheme(scheme: scheme, project: project, generatedProject: generatedProject, graph: graph)
+            try generateScheme(scheme: scheme, project: project, generatedProject: generatedProject)
         }
 
         /// Generate scheme for every targets in Project that is not defined in Manifest
@@ -52,8 +52,7 @@ final class SchemesGenerator: SchemesGenerating {
 
                 try generateScheme(scheme: scheme,
                                    project: project,
-                                   generatedProject: generatedProject,
-                                   graph: graph)
+                                   generatedProject: generatedProject)
             }
         }
     }
@@ -67,8 +66,7 @@ final class SchemesGenerator: SchemesGenerating {
     /// - Throws: An error if the generation fails.
     func generateScheme(scheme: Scheme,
                         project: Project,
-                        generatedProject: GeneratedProject,
-                        graph: Graphing) throws {
+                        generatedProject: GeneratedProject) throws {
         let schemesDirectory = try createSchemesDirectory(path: generatedProject.path, shared: scheme.shared)
         let schemePath = schemesDirectory.appending(component: "\(scheme.name).xcscheme")
         
