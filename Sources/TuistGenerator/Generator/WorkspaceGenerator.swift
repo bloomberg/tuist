@@ -141,12 +141,10 @@ final class WorkspaceGenerator: WorkspaceGenerating {
                               graph: Graphing,
                               generatedProjects: [AbsolutePath: GeneratedProject]) throws {
         
-        
-        // TODO: use new api
-//        try schemesGenerator.generateWorkspaceSchemes(workspace: workspace,
-//                                                      xcworkspacePath: xcworkspacePath,
-//                                                      generatedProjects: generatedProjects,
-//                                                      graph: graph)
+        try schemesGenerator.generateWorkspaceSchemes(workspace: workspace,
+                                                      xcworkspacePath: xcworkspacePath,
+                                                      generatedProjects: generatedProjects,
+                                                      graph: graph)
     }
 
     private func generatePackageDependencyManager(

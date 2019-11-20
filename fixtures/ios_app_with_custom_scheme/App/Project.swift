@@ -16,7 +16,7 @@ let releaseScheme = Scheme(name: "App-Release",
 
 let userScheme = Scheme(name: "App-Local",
                         shared: false,
-                        buildAction: BuildAction(targets: [.project(path: "../Frameworks/Framework1", target: "Framework1")], preActions: []),
+                        buildAction: BuildAction(targets: ["../Frameworks/Framework1"], preActions: []),
                         testAction: TestAction(targets: ["Framework1Tests"]),
                         runAction: RunAction(executable: "App"))
 

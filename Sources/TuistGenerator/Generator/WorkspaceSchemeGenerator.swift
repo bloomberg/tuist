@@ -51,13 +51,18 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                                            graph: graph,
                                                            rootPath: workspacePath,
                                                            generatedProjects: generatedProjects)
+        let generatedProfileAction = try schemeProfileAction(scheme: scheme,
+                                                             graph: graph,
+                                                             rootPath: workspacePath,
+                                                             generatedProjects: generatedProjects)
         
         let scheme = XCScheme(name: scheme.name,
                               lastUpgradeVersion: WorkspaceSchemesGenerator.defaultLastUpgradeVersion,
                               version: WorkspaceSchemesGenerator.defaultVersion,
                               buildAction: generatedBuildAction,
                               testAction: generatedTestAction,
-                              launchAction: generatedLaunchAction)
+                              launchAction: generatedLaunchAction,
+                              profileAction: generatedProfileAction)
         try scheme.write(path: schemePath.path, override: true)
     }
     
@@ -213,6 +218,34 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                      macroExpansion: macroExpansion,
                                      commandlineArguments: commandlineArguments,
                                      environmentVariables: environments)
+    }
+    
+    func schemeProfileAction(scheme: Scheme,
+                             graph: Graphing,
+                             rootPath: AbsolutePath,
+                             generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.ProfileAction? {
+        
+        guard let executable = scheme.runAction?.executable,
+            let (targetNode, generatedProject) = try lookupTarget(reference: executable, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath) else {
+            return nil
+        }
+
+        guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }
+
+        var buildableProductRunnable: XCScheme.BuildableProductRunnable?
+        var macroExpansion: XCScheme.BuildableReference?
+        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
+
+        if targetNode.target.product.runnable {
+            buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
+        } else {
+            macroExpansion = buildableReference
+        }
+
+        let buildConfiguration = defaultReleaseBuildConfigurationName(in: targetNode.project)
+        return XCScheme.ProfileAction(buildableProductRunnable: buildableProductRunnable,
+                                      buildConfiguration: buildConfiguration,
+                                      macroExpansion: macroExpansion)
     }
 
         
@@ -373,5 +406,12 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         let buildConfiguration = debugConfiguration ?? project.settings.configurations.keys.first
 
         return buildConfiguration?.name ?? BuildConfiguration.debug.name
+    }
+    
+    private func defaultReleaseBuildConfigurationName(in project: Project) -> String {
+        let releaseConfiguration = project.settings.defaultReleaseBuildConfiguration()
+        let buildConfiguration = releaseConfiguration ?? project.settings.configurations.keys.first
+
+        return buildConfiguration?.name ?? BuildConfiguration.release.name
     }
 }
