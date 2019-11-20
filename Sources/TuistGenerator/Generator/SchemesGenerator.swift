@@ -45,7 +45,7 @@ final class SchemesGenerator: SchemesGenerating {
                 let scheme = Scheme(name: target.name,
                                     shared: true,
                                     buildAction: BuildAction(targets: [.target(name: target.name)]),
-                                    testAction: TestAction(targets: [target.name], configurationName: buildConfiguration),
+                                    testAction: TestAction(targets: [.target(name: target.name)], configurationName: buildConfiguration),
                                     runAction: RunAction(configurationName: buildConfiguration,
                                                          executable: target.productName,
                                                          arguments: Arguments(environment: target.environment)))
@@ -188,9 +188,9 @@ final class SchemesGenerator: SchemesGenerating {
         var preActions: [XCScheme.ExecutionAction] = []
         var postActions: [XCScheme.ExecutionAction] = []
 
-        testAction.targets.forEach { name in
-            guard let target = project.targets.first(where: { $0.name == name }), target.product.testsBundle else { return }
-            guard let pbxTarget = generatedProject.targets[name] else { return }
+        testAction.targets.forEach { targetReference in
+            guard let target = project.targets.first(where: { $0.name == targetReference.name }), target.product.testsBundle else { return }
+            guard let pbxTarget = generatedProject.targets[targetReference.name] else { return }
 
             let reference = self.targetBuildableReference(target: target,
                                                           pbxTarget: pbxTarget,

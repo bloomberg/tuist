@@ -43,6 +43,10 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                                          graph: graph,
                                                          rootPath: workspacePath,
                                                          generatedProjects: generatedProjects)
+        let generatedTestAction = try schemeTestAction(scheme: scheme,
+                                                       graph: graph,
+                                                       rootPath: workspacePath,
+                                                       generatedProjects: generatedProjects)
         
         let scheme = XCScheme(name: scheme.name,
                               lastUpgradeVersion: WorkspaceSchemesGenerator.defaultLastUpgradeVersion,
@@ -102,6 +106,70 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                     postActions: postActions,
                                     parallelizeBuild: true,
                                     buildImplicitDependencies: true)
+    }
+    
+    func schemeTestAction(scheme: Scheme,
+                          graph: Graphing,
+                          rootPath: AbsolutePath,
+                          generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.TestAction? {
+        guard let testAction = scheme.testAction else { return nil }
+        
+        var testables: [XCScheme.TestableReference] = []
+        var preActions: [XCScheme.ExecutionAction] = []
+        var postActions: [XCScheme.ExecutionAction] = []
+
+        try testAction.targets.forEach { testActionTarget in
+            guard let projectPath = testActionTarget.projectPath else { return }
+            let pathToProject = rootPath.appending(RelativePath(projectPath))
+            guard let target = try graph.target(path: pathToProject,
+                                                name: testActionTarget.name) else { return }
+            guard let generatedProject = generatedProjects[pathToProject] else { return }
+            guard let pbxTarget = generatedProject.targets[testActionTarget.name] else { return }
+            let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+
+            let reference = self.targetBuildableReference(target: target.target,
+                                                          pbxTarget: pbxTarget,
+                                                          projectPath: relativeXcodeProjectPath.pathString)
+
+            let testable = XCScheme.TestableReference(skipped: false, buildableReference: reference)
+            testables.append(testable)
+        }
+        
+        preActions = try testAction.preActions.map {
+            try schemeExecutionAction(action: $0, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath)
+        }
+        
+        postActions = try testAction.postActions.map {
+            try schemeExecutionAction(action: $0, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath)
+        }
+
+        var args: XCScheme.CommandLineArguments?
+        var environments: [XCScheme.EnvironmentVariable]?
+
+        if let arguments = testAction.arguments {
+            args = XCScheme.CommandLineArguments(arguments: commandlineArgruments(arguments.launch))
+            environments = environmentVariables(arguments.environment)
+        }
+        
+        let codeCoverageTargets = try testAction.targets.compactMap {
+            try testCoverageTargetReferences(target: $0, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath)
+        }
+
+        let onlyGenerateCoverageForSpecifiedTargets = codeCoverageTargets.count > 0 ? true : nil
+
+        let shouldUseLaunchSchemeArgsEnv: Bool = args == nil && environments == nil
+
+        return XCScheme.TestAction(buildConfiguration: testAction.configurationName,
+                                   macroExpansion: nil,
+                                   testables: testables,
+                                   preActions: preActions,
+                                   postActions: postActions,
+                                   shouldUseLaunchSchemeArgsEnv: shouldUseLaunchSchemeArgsEnv,
+                                   codeCoverageEnabled: testAction.coverage,
+                                   codeCoverageTargets: codeCoverageTargets,
+                                   onlyGenerateCoverageForSpecifiedTargets: onlyGenerateCoverageForSpecifiedTargets,
+                                   commandlineArguments: args,
+                                   environmentVariables: environments)
     }
 
         
@@ -193,6 +261,26 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         return schemeAction
     }
     
+    private func testCoverageTargetReferences(target: TargetReference,
+                                              graph: Graphing,
+                                              generatedProjects: [AbsolutePath: GeneratedProject],
+                                              rootPath: AbsolutePath) throws -> XCScheme.BuildableReference? {
+        guard let (target, generatedProject) = try lookupTarget(reference: target,
+                                                                graph: graph,
+                                                                generatedProjects: generatedProjects,
+                                                                rootPath: rootPath) else {
+            return nil
+        }
+        
+        guard let pbxTarget = generatedProject.targets[target.name] else { return nil }
+
+        return self.targetBuildableReference(target: target,
+                                             pbxTarget: pbxTarget,
+                                             projectPath: generatedProject.name)
+    }
+    
+    // Unchanged Below:
+    
     /// Creates the directory where the schemes are stored inside the project.
     /// If the directory exists it does not re-create it.
     ///
@@ -213,5 +301,27 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
             try FileHandler.shared.createFolder(schemePath)
         }
         return schemePath
+    }
+    
+    /// Returns the scheme commandline argument passed on launch
+    ///
+    /// - Parameters:
+    /// - environments: commandline argument keys.
+    /// - Returns: XCScheme.CommandLineArguments.CommandLineArgument.
+    func commandlineArgruments(_ arguments: [String: Bool]) -> [XCScheme.CommandLineArguments.CommandLineArgument] {
+        return arguments.map { key, enabled in
+            XCScheme.CommandLineArguments.CommandLineArgument(name: key, enabled: enabled)
+        }
+    }
+    
+    /// Returns the scheme environment variables
+    ///
+    /// - Parameters:
+    /// - environments: environment variables
+    /// - Returns: XCScheme.EnvironmentVariable.
+    func environmentVariables(_ environments: [String: String]) -> [XCScheme.EnvironmentVariable] {
+        return environments.map { key, value in
+            XCScheme.EnvironmentVariable(variable: key, value: value, enabled: true)
+        }
     }
 }

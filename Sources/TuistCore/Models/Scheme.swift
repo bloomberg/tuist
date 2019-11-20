@@ -133,7 +133,7 @@ public class BuildAction: Equatable {
 public class TestAction: Equatable {
     // MARK: - Attributes
 
-    public let targets: [String]
+    public let targets: [TargetReference]
     public let arguments: Arguments?
     public let configurationName: String
     public let coverage: Bool
@@ -143,7 +143,7 @@ public class TestAction: Equatable {
 
     // MARK: - Init
 
-    public init(targets: [String] = [],
+    public init(targets: [TargetReference] = [],
                 arguments: Arguments? = nil,
                 configurationName: String,
                 coverage: Bool = false,

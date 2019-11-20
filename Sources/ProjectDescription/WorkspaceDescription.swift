@@ -83,7 +83,7 @@ public struct WorkspaceDescription {
     // MARK: - TestAction
 
     public struct TestAction: Equatable, Codable {
-        public let targets: [String]
+        public let targets: [TargetReference]
         public let arguments: Arguments?
         public let configurationName: String
         public let coverage: Bool
@@ -91,7 +91,7 @@ public struct WorkspaceDescription {
         public let preActions: [ExecutionAction]
         public let postActions: [ExecutionAction]
 
-        public init(targets: [String],
+        public init(targets: [TargetReference],
                     arguments: Arguments? = nil,
                     configurationName: String,
                     coverage: Bool = false,
@@ -107,7 +107,7 @@ public struct WorkspaceDescription {
             self.codeCoverageTargets = codeCoverageTargets
         }
 
-        public init(targets: [String],
+        public init(targets: [TargetReference],
                     arguments: Arguments? = nil,
                     config: PresetBuildConfiguration = .debug,
                     coverage: Bool = false,
