@@ -25,6 +25,12 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
     /// Default version for generated schemes.
     private static let defaultVersion = "1.3"
     
+    private var schemeGeneratorHelpers: SchemeGeneratorHelpers
+    
+    public init(schemeGeneratorHelpers: SchemeGeneratorHelpers = SchemeGeneratorHelpers()) {
+        self.schemeGeneratorHelpers = schemeGeneratorHelpers
+    }
+    
     func generateWorkspaceSchemes(workspace: Workspace, xcworkspacePath: AbsolutePath, generatedProjects: [AbsolutePath : GeneratedProject], graph: Graphing) throws {
         try workspace.schemes.forEach { scheme in
             try generateScheme(scheme: scheme, xcworkspacePath: xcworkspacePath, workspacePath: workspace.path, graph: graph, generatedProjects: generatedProjects)
@@ -37,7 +43,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                         workspacePath: AbsolutePath,
                         graph: Graphing,
                         generatedProjects: [AbsolutePath: GeneratedProject]) throws {
-        let schemeDirectory = try createSchemesDirectory(path: xcworkspacePath, shared: scheme.shared)
+        let schemeDirectory = try schemeGeneratorHelpers.createSchemesDirectory(path: xcworkspacePath, shared: scheme.shared)
         let schemePath = schemeDirectory.appending(component: "\(scheme.name).xcscheme")
         let generatedBuildAction = try schemeBuildAction(scheme: scheme,
                                                          graph: graph,
@@ -96,10 +102,10 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
             guard let generatedProject = generatedProjects[pathToProject] else { return }
             guard let pbxTarget = generatedProject.targets[buildActionTarget.name] else { return }
             let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
-                
-            let buildableReference = self.targetBuildableReference(target: target.target,
-                                                                   pbxTarget: pbxTarget,
-                                                                   projectPath: relativeXcodeProjectPath.pathString)
+            
+            let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: target.target,
+                                                                                     pbxTarget: pbxTarget,
+                                                                                     projectPath: relativeXcodeProjectPath.pathString)
 
             entries.append(XCScheme.BuildAction.Entry(buildableReference: buildableReference, buildFor: buildFor))
         }
@@ -137,10 +143,10 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
             guard let generatedProject = generatedProjects[pathToProject] else { return }
             guard let pbxTarget = generatedProject.targets[testActionTarget.name] else { return }
             let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
-
-            let reference = self.targetBuildableReference(target: target.target,
-                                                          pbxTarget: pbxTarget,
-                                                          projectPath: relativeXcodeProjectPath.pathString)
+            
+            let reference = schemeGeneratorHelpers.targetBuildableReference(target: target.target,
+                                                                            pbxTarget: pbxTarget,
+                                                                            projectPath: relativeXcodeProjectPath.pathString)
 
             let testable = XCScheme.TestableReference(skipped: false, buildableReference: reference)
             testables.append(testable)
@@ -158,8 +164,8 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var environments: [XCScheme.EnvironmentVariable]?
 
         if let arguments = testAction.arguments {
-            args = XCScheme.CommandLineArguments(arguments: commandlineArgruments(arguments.launch))
-            environments = environmentVariables(arguments.environment)
+            args = XCScheme.CommandLineArguments(arguments: schemeGeneratorHelpers.commandlineArgruments(arguments.launch))
+            environments = schemeGeneratorHelpers.environmentVariables(arguments.environment)
         }
         
         let codeCoverageTargets = try testAction.targets.compactMap {
@@ -198,7 +204,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
         let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
-        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
+        let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
         if targetNode.target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
         } else {
@@ -209,11 +215,11 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var environments: [XCScheme.EnvironmentVariable]?
 
         if let arguments = scheme.runAction?.arguments {
-            commandlineArguments = XCScheme.CommandLineArguments(arguments: commandlineArgruments(arguments.launch))
-            environments = environmentVariables(arguments.environment)
+            commandlineArguments = XCScheme.CommandLineArguments(arguments: schemeGeneratorHelpers.commandlineArgruments(arguments.launch))
+            environments = schemeGeneratorHelpers.environmentVariables(arguments.environment)
         }
 
-        let buildConfiguration = scheme.runAction?.configurationName ?? defaultDebugBuildConfigurationName(in: targetNode.project)
+        let buildConfiguration = scheme.runAction?.configurationName ?? schemeGeneratorHelpers.defaultDebugBuildConfigurationName(in: targetNode.project)
         return XCScheme.LaunchAction(runnable: buildableProductRunnable,
                                      buildConfiguration: buildConfiguration,
                                      macroExpansion: macroExpansion,
@@ -236,7 +242,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
         let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
-        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
+        let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
 
         if targetNode.target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
@@ -244,28 +250,10 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
             macroExpansion = buildableReference
         }
 
-        let buildConfiguration = defaultReleaseBuildConfigurationName(in: targetNode.project)
+        let buildConfiguration = schemeGeneratorHelpers.defaultReleaseBuildConfigurationName(in: targetNode.project)
         return XCScheme.ProfileAction(buildableProductRunnable: buildableProductRunnable,
                                       buildConfiguration: buildConfiguration,
                                       macroExpansion: macroExpansion)
-    }
-
-        
-    /// Returns the scheme buildable reference for a given target.
-    ///
-    /// - Parameters:
-    ///   - target: Target manifest.
-    ///   - pbxTarget: Xcode native target.
-    ///   - projectPath: Project name with the .xcodeproj extension.
-    /// - Returns: Buildable reference.
-    func targetBuildableReference(target: Target,
-                                  pbxTarget: PBXNativeTarget,
-                                  projectPath: String) -> XCScheme.BuildableReference {
-        return XCScheme.BuildableReference(referencedContainer: "container:\(projectPath)",
-                                           blueprint: pbxTarget,
-                                           buildableName: target.productNameWithExtension,
-                                           blueprintName: target.name,
-                                           buildableIdentifier: "primary")
     }
     
     func schemeExecutionAction(action: ExecutionAction,
@@ -326,8 +314,8 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         /// Return Buildable Reference for Scheme Action
         func schemeBuildableReference(target: Target, generatedProject: GeneratedProject) -> XCScheme.BuildableReference? {
             guard let pbxTarget = generatedProject.targets[target.name] else { return nil }
-
-            return targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
+            
+            return schemeGeneratorHelpers.targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
         }
 
         let schemeAction = XCScheme.ExecutionAction(scriptText: action.scriptText,
@@ -352,68 +340,8 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         
         guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }
 
-        return self.targetBuildableReference(target: targetNode.target,
-                                             pbxTarget: pbxTarget,
-                                             projectPath: generatedProject.name)
-    }
-    
-    // Unchanged Below:
-    
-    /// Creates the directory where the schemes are stored inside the project.
-    /// If the directory exists it does not re-create it.
-    ///
-    /// - Parameters:
-    ///   - path: Path to the Xcode workspace or project.
-    ///   - shared: Scheme should be shared or not
-    /// - Returns: Path to the schemes directory.
-    /// - Throws: A FatalError if the creation of the directory fails.
-    private func createSchemesDirectory(path: AbsolutePath, shared: Bool = true) throws -> AbsolutePath {
-        let schemePath: AbsolutePath
-        if shared {
-            schemePath = path.appending(RelativePath("xcshareddata/xcschemes"))
-        } else {
-            let username = NSUserName()
-            schemePath = path.appending(RelativePath("xcuserdata/\(username).xcuserdatad/xcschemes"))
-        }
-        if !FileHandler.shared.exists(schemePath) {
-            try FileHandler.shared.createFolder(schemePath)
-        }
-        return schemePath
-    }
-    
-    /// Returns the scheme commandline argument passed on launch
-    ///
-    /// - Parameters:
-    /// - environments: commandline argument keys.
-    /// - Returns: XCScheme.CommandLineArguments.CommandLineArgument.
-    func commandlineArgruments(_ arguments: [String: Bool]) -> [XCScheme.CommandLineArguments.CommandLineArgument] {
-        return arguments.map { key, enabled in
-            XCScheme.CommandLineArguments.CommandLineArgument(name: key, enabled: enabled)
-        }
-    }
-    
-    /// Returns the scheme environment variables
-    ///
-    /// - Parameters:
-    /// - environments: environment variables
-    /// - Returns: XCScheme.EnvironmentVariable.
-    func environmentVariables(_ environments: [String: String]) -> [XCScheme.EnvironmentVariable] {
-        return environments.map { key, value in
-            XCScheme.EnvironmentVariable(variable: key, value: value, enabled: true)
-        }
-    }
-    
-    private func defaultDebugBuildConfigurationName(in project: Project) -> String {
-        let debugConfiguration = project.settings.defaultDebugBuildConfiguration()
-        let buildConfiguration = debugConfiguration ?? project.settings.configurations.keys.first
-
-        return buildConfiguration?.name ?? BuildConfiguration.debug.name
-    }
-    
-    private func defaultReleaseBuildConfigurationName(in project: Project) -> String {
-        let releaseConfiguration = project.settings.defaultReleaseBuildConfiguration()
-        let buildConfiguration = releaseConfiguration ?? project.settings.configurations.keys.first
-
-        return buildConfiguration?.name ?? BuildConfiguration.release.name
+        return schemeGeneratorHelpers.targetBuildableReference(target: targetNode.target,
+                                                               pbxTarget: pbxTarget,
+                                                               projectPath: generatedProject.name)
     }
 }
