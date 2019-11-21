@@ -12,7 +12,7 @@ public extension Arguments {
 
 public extension RunAction {
     static func test(configurationName: String = BuildConfiguration.debug.name,
-                     executable: String? = "App",
+                     executable: TargetReference? = TargetReference(projectPath: nil, name: "App"),
                      arguments: Arguments? = Arguments.test()) -> RunAction {
         return RunAction(configurationName: configurationName,
                          executable: executable,
@@ -21,7 +21,7 @@ public extension RunAction {
 }
 
 public extension TestAction {
-    static func test(targets: [String] = ["AppTests"],
+    static func test(targets: [TargetReference] = [TargetReference(projectPath: nil, name: "AppTests")],
                      arguments: Arguments? = Arguments.test(),
                      configurationName: String = BuildConfiguration.debug.name,
                      coverage: Bool = false,
@@ -39,7 +39,7 @@ public extension TestAction {
 }
 
 public extension BuildAction {
-    static func test(targets: [String] = ["App"],
+    static func test(targets: [TargetReference] = [TargetReference(projectPath: nil, name: "App")],
                      preActions: [ExecutionAction] = [],
                      postActions: [ExecutionAction] = []) -> BuildAction {
         return BuildAction(targets: targets, preActions: preActions, postActions: postActions)

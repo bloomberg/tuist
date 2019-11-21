@@ -70,9 +70,9 @@ final class SchemesGenerator: SchemesGenerating {
     ///   - project: Project manifest.
     ///   - generatedProjects: Generated Xcode project.
     /// - Throws: An error if the generation fails.
-    func generateScheme(scheme: Scheme,
-                        project: Project,
-                        generatedProject: GeneratedProject) throws {
+    private func generateScheme(scheme: Scheme,
+                                project: Project,
+                                generatedProject: GeneratedProject) throws {
         let schemesDirectory = try schemeGeneratorHelpers.createSchemesDirectory(path: generatedProject.path, shared: scheme.shared)
         let schemePath = schemesDirectory.appending(component: "\(scheme.name).xcscheme")
         
@@ -88,8 +88,8 @@ final class SchemesGenerator: SchemesGenerating {
                               testAction: generatedTestAction,
                               launchAction: generatedLaunchAction,
                               profileAction: generatedProfileAction,
-                              analyzeAction: schemeGeneratorHelpers.schemeAnalyzeAction(for: project),
-                              archiveAction: schemeGeneratorHelpers.schemeArchiveAction(for: project))
+                              analyzeAction: schemeAnalyzeAction(for: project),
+                              archiveAction: schemeArchiveAction(for: project))
         try scheme.write(path: schemePath.path, override: true)
     }
 
@@ -101,11 +101,11 @@ final class SchemesGenerator: SchemesGenerating {
     ///   - graph: Dependencies graph.
     /// - Returns: Scheme build action.
     func projectBuildAction(project: Project,
-                            generatedProject: GeneratedProject,
-                            graph: Graphing) -> XCScheme.BuildAction {
+                                    generatedProject: GeneratedProject,
+                                    graph: Graphing) -> XCScheme.BuildAction {
         let targets = project.sortedTargetsForProjectScheme(graph: graph)
         let entries: [XCScheme.BuildAction.Entry] = targets.map { (target) -> XCScheme.BuildAction.Entry in
-
+            
             let pbxTarget = generatedProject.targets[target.name]!
             let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: target,
                                                                                      pbxTarget: pbxTarget,
@@ -339,8 +339,8 @@ final class SchemesGenerator: SchemesGenerating {
     ///   - projectName: Project name with .xcodeproj extension.
     /// - Returns: Scheme profile action.
     func schemeProfileAction(scheme: Scheme,
-                             project: Project,
-                             generatedProject: GeneratedProject) -> XCScheme.ProfileAction? {
+                                     project: Project,
+                                     generatedProject: GeneratedProject) -> XCScheme.ProfileAction? {
         
         guard var target = project.targets.first(where: { $0.name == scheme.buildAction?.targets.first?.name }) else { return nil }
 
@@ -374,9 +374,9 @@ final class SchemesGenerator: SchemesGenerating {
     ///   - project: Project manifest.
     ///   - generatedProject: Generated Xcode project.
     /// - Returns: Scheme actions.
-    func schemeExecutionActions(actions: [ExecutionAction],
-                                project: Project,
-                                generatedProject: GeneratedProject) -> [XCScheme.ExecutionAction] {
+    private func schemeExecutionActions(actions: [ExecutionAction],
+                                        project: Project,
+                                        generatedProject: GeneratedProject) -> [XCScheme.ExecutionAction] {
         /// Return Buildable Reference for Scheme Action
         func schemeBuildableReference(targetName: String?, project: Project, generatedProject: GeneratedProject) -> XCScheme.BuildableReference? {
             guard let targetName = targetName else { return nil }
@@ -398,5 +398,22 @@ final class SchemesGenerator: SchemesGenerating {
             schemeActions.append(schemeAction)
         }
         return schemeActions
+    }
+    
+    /// Returns the scheme analyze action
+    ///
+    /// - Returns: Scheme analyze action.
+    func schemeAnalyzeAction(for project: Project) -> XCScheme.AnalyzeAction {
+        let buildConfiguration = schemeGeneratorHelpers.defaultDebugBuildConfigurationName(in: project)
+        return XCScheme.AnalyzeAction(buildConfiguration: buildConfiguration)
+    }
+
+    /// Returns the scheme archive action
+    ///
+    /// - Returns: Scheme archive action.
+    func schemeArchiveAction(for project: Project) -> XCScheme.ArchiveAction {
+        let buildConfiguration = schemeGeneratorHelpers.defaultReleaseBuildConfigurationName(in: project)
+        return XCScheme.ArchiveAction(buildConfiguration: buildConfiguration,
+                                      revealArchiveInOrganizer: true)
     }
 }

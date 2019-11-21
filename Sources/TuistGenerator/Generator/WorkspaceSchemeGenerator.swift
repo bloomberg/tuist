@@ -38,11 +38,11 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
     }
     
     // Generates the schemes for a workspace.
-    func generateScheme(scheme: Scheme,
-                        xcworkspacePath: AbsolutePath,
-                        workspacePath: AbsolutePath,
-                        graph: Graphing,
-                        generatedProjects: [AbsolutePath: GeneratedProject]) throws {
+    private func generateScheme(scheme: Scheme,
+                                xcworkspacePath: AbsolutePath,
+                                workspacePath: AbsolutePath,
+                                graph: Graphing,
+                                generatedProjects: [AbsolutePath: GeneratedProject]) throws {
         let schemeDirectory = try schemeGeneratorHelpers.createSchemesDirectory(path: xcworkspacePath, shared: scheme.shared)
         let schemePath = schemeDirectory.appending(component: "\(scheme.name).xcscheme")
         let generatedBuildAction = try schemeBuildAction(scheme: scheme,
@@ -80,7 +80,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
     ///   - rootPath: Path to the workspace.
     ///   - generatedProjects: Generated Xcode project.
     /// - Returns: Scheme build action.
-    func schemeBuildAction(scheme: Scheme,
+    private func schemeBuildAction(scheme: Scheme,
                            graph: Graphing,
                            rootPath: AbsolutePath,
                            generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.BuildAction? {
@@ -125,7 +125,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                     buildImplicitDependencies: true)
     }
     
-    func schemeTestAction(scheme: Scheme,
+    private func schemeTestAction(scheme: Scheme,
                           graph: Graphing,
                           rootPath: AbsolutePath,
                           generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.TestAction? {
@@ -189,7 +189,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                    environmentVariables: environments)
     }
     
-    func schemeLaunchAction(scheme: Scheme,
+    private func schemeLaunchAction(scheme: Scheme,
                             graph: Graphing,
                             rootPath: AbsolutePath,
                             generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.LaunchAction? {
@@ -227,7 +227,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                      environmentVariables: environments)
     }
     
-    func schemeProfileAction(scheme: Scheme,
+    private func schemeProfileAction(scheme: Scheme,
                              graph: Graphing,
                              rootPath: AbsolutePath,
                              generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.ProfileAction? {
@@ -256,7 +256,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                       macroExpansion: macroExpansion)
     }
     
-    func schemeExecutionAction(action: ExecutionAction,
+    private func schemeExecutionAction(action: ExecutionAction,
                                graph: Graphing,
                                generatedProjects: [AbsolutePath: GeneratedProject],
                                rootPath: AbsolutePath) throws -> XCScheme.ExecutionAction {
@@ -294,11 +294,10 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         return (targetNode, generatedProject)
     }
     
-    func schemeExecutionAction(action: ExecutionAction) -> XCScheme.ExecutionAction {
-        let schemeAction = XCScheme.ExecutionAction(scriptText: action.scriptText,
-                                                    title: action.title,
-                                                    environmentBuildable: nil)
-        return schemeAction
+    private func schemeExecutionAction(action: ExecutionAction) -> XCScheme.ExecutionAction {
+        return XCScheme.ExecutionAction(scriptText: action.scriptText,
+                                        title: action.title,
+                                        environmentBuildable: nil)
     }
     
     /// Returns the scheme pre/post actions.
@@ -308,7 +307,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
     ///   - target: Project manifest.
     ///   - generatedProject: Generated Xcode project.
     /// - Returns: Scheme actions.
-    func schemeExecutionAction(action: ExecutionAction,
+    private func schemeExecutionAction(action: ExecutionAction,
                                target: Target,
                                generatedProject: GeneratedProject) -> XCScheme.ExecutionAction {
         /// Return Buildable Reference for Scheme Action

@@ -820,14 +820,14 @@ class GeneratorModelLoaderTest: TuistUnitTestCase {
                 matches manifest: ProjectDescription.BuildAction,
                 file: StaticString = #file,
                 line: UInt = #line) {
-        XCTAssertEqual(buildAction.targets, manifest.targets, file: file, line: line)
+        XCTAssertEqual(buildAction.targets, manifest.targets.map { TargetReference(projectPath: nil, name: $0) }, file: file, line: line)
     }
 
     func assert(testAction: TuistCore.TestAction,
                 matches manifest: ProjectDescription.TestAction,
                 file: StaticString = #file,
                 line: UInt = #line) {
-        XCTAssertEqual(testAction.targets, manifest.targets, file: file, line: line)
+        XCTAssertEqual(testAction.targets, manifest.targets.map { TargetReference(projectPath: nil, name: $0) }, file: file, line: line)
         XCTAssertTrue(testAction.configurationName == manifest.configurationName, file: file, line: line)
         XCTAssertEqual(testAction.coverage, manifest.coverage, file: file, line: line)
         optionalAssert(testAction.arguments, manifest.arguments) {
@@ -839,10 +839,13 @@ class GeneratorModelLoaderTest: TuistUnitTestCase {
                 matches manifest: ProjectDescription.RunAction,
                 file: StaticString = #file,
                 line: UInt = #line) {
-        XCTAssertEqual(runAction.executable, manifest.executable, file: file, line: line)
+        var runActionExecutable: String?
+        if let executable = runAction.executable { runActionExecutable = executable.name }
+            
+        XCTAssertEqual(runActionExecutable, manifest.executable, file: file, line: line)
         XCTAssertTrue(runAction.configurationName == manifest.configurationName, file: file, line: line)
         optionalAssert(runAction.arguments, manifest.arguments) {
-            assert(arguments: $0, matches: $1, file: file, line: line)
+            self.assert(arguments: $0, matches: $1, file: file, line: line)
         }
     }
 

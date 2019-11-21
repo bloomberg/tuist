@@ -14,4 +14,8 @@ final class MockSchemesGenerator: SchemesGenerating {
     func generateProjectScheme(project: Project, generatedProject: GeneratedProject, graph: Graphing) throws {
         generateProjectSchemeArgs.append((project: project, generatedProject: generatedProject, graph: graph))
     }
+    
+    func generateProjectSchemes(project: Project, generatedProject: GeneratedProject, graph: Graphing) throws {
+        generateProjectSchemeArgs.append((project: project, generatedProject: generatedProject, graph: graph))
+    }
 }

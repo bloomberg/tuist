@@ -80,21 +80,4 @@ final class SchemeGeneratorHelpers {
 
         return buildConfiguration?.name ?? BuildConfiguration.release.name
     }
-    
-    /// Returns the scheme analyze action
-    ///
-    /// - Returns: Scheme analyze action.
-    func schemeAnalyzeAction(for project: Project) -> XCScheme.AnalyzeAction {
-        let buildConfiguration = defaultDebugBuildConfigurationName(in: project)
-        return XCScheme.AnalyzeAction(buildConfiguration: buildConfiguration)
-    }
-
-    /// Returns the scheme archive action
-    ///
-    /// - Returns: Scheme archive action.
-    func schemeArchiveAction(for project: Project) -> XCScheme.ArchiveAction {
-        let buildConfiguration = defaultReleaseBuildConfigurationName(in: project)
-        return XCScheme.ArchiveAction(buildConfiguration: buildConfiguration,
-                                      revealArchiveInOrganizer: true)
-    }
 }

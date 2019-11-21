@@ -123,9 +123,9 @@ final class SchemeGeneratorTests: XCTestCase {
     func test_schemeTestAction_with_executionAction() {
         let testTarget = Target.test(name: "AppTests", product: .unitTests)
 
-        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: "AppTests")
-        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: "AppTests")
-        let testAction = TestAction.test(targets: ["AppTests"], preActions: [preAction], postActions: [postAction])
+        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: nil, name: "AppTests"))
+        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: nil, name: "AppTests"))
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "AppTests")], preActions: [preAction], postActions: [postAction])
 
         let scheme = Scheme.test(name: "AppTests", shared: true, testAction: testAction)
         let project = Project.test(targets: [testTarget])
@@ -162,8 +162,8 @@ final class SchemeGeneratorTests: XCTestCase {
         let target = Target.test(name: "App", product: .app)
         let testTarget = Target.test(name: "AppTests", product: .unitTests)
 
-        let testAction = TestAction.test(targets: ["AppTests"], coverage: true, codeCoverageTargets: ["App"])
-        let buildAction = BuildAction.test(targets: ["App"])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "AppTests")], coverage: true, codeCoverageTargets: ["App"])
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "App")])
 
         let scheme = Scheme.test(name: "AppTests", shared: true, buildAction: buildAction, testAction: testAction)
         let project = Project.test(targets: [target, testTarget])
@@ -181,7 +181,7 @@ final class SchemeGeneratorTests: XCTestCase {
         XCTAssertEqual(codeCoverageTargetsBuildableReference?.first?.buildableName, "App.app")
     }
 
-    func test_schemeBuildAction() {
+    func test_schemeBuildAction() throws {
         let target = Target.test(name: "App", product: .app)
         let pbxTarget = PBXNativeTarget(name: "App")
 
@@ -189,7 +189,7 @@ final class SchemeGeneratorTests: XCTestCase {
         let project = Project.test(targets: [target])
         let generatedProject = GeneratedProject.test(targets: ["App": pbxTarget])
 
-        let got = subject.schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
+        let got = try subject.schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
 
         XCTAssertEqual(got?.buildActionEntries.count, 1)
         let entry = got?.buildActionEntries.first
@@ -205,19 +205,19 @@ final class SchemeGeneratorTests: XCTestCase {
         XCTAssertEqual(got?.buildImplicitDependencies, true)
     }
 
-    func test_schemeBuildAction_with_executionAction() {
+    func test_schemeBuildAction_with_executionAction() throws {
         let target = Target.test(name: "App", product: .app)
         let pbxTarget = PBXNativeTarget(name: "App")
 
-        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: "App")
-        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: "App")
-        let buildAction = BuildAction.test(targets: ["Library"], preActions: [preAction], postActions: [postAction])
+        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: nil, name: "App"))
+        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: nil, name: "App"))
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "Library")], preActions: [preAction], postActions: [postAction])
 
         let scheme = Scheme.test(name: "App", shared: true, buildAction: buildAction)
         let project = Project.test(targets: [target])
         let generatedProject = GeneratedProject.test(targets: ["App": pbxTarget])
 
-        let got = subject.schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
+        let got = try subject.schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
 
         // Pre Action
         XCTAssertEqual(got?.preActions.first?.title, "Pre Action")
@@ -267,8 +267,8 @@ final class SchemeGeneratorTests: XCTestCase {
         let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
         let pbxTarget = PBXNativeTarget(name: "App")
 
-        let buildAction = BuildAction.test(targets: ["Library"])
-        let testAction = TestAction.test(targets: ["Library"])
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
 
         let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
 
@@ -320,8 +320,8 @@ final class SchemeGeneratorTests: XCTestCase {
     func test_schemeProfileAction_when_notRunnableTarget() {
         let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
 
-        let buildAction = BuildAction.test(targets: ["Library"])
-        let testAction = TestAction.test(targets: ["Library"])
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
         let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
 
         let project = Project.test(path: AbsolutePath("/project.xcodeproj"), targets: [target])
