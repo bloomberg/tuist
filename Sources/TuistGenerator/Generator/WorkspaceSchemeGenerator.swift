@@ -197,7 +197,8 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
 
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
-        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
+        let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
         if targetNode.target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
         } else {
@@ -234,7 +235,8 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
 
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
-        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: generatedProject.name)
+        let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+        let buildableReference = targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
 
         if targetNode.target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
