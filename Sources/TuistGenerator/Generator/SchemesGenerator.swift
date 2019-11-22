@@ -50,10 +50,10 @@ final class SchemesGenerator: SchemesGenerating {
             if !project.schemes.contains(where: { $0.name == target.name }) {
                 let scheme = Scheme(name: target.name,
                                     shared: true,
-                                    buildAction: BuildAction(targets: [.target(name: target.name)]),
-                                    testAction: TestAction(targets: [.target(name: target.name)], configurationName: buildConfiguration),
+                                    buildAction: BuildAction(targets: [.project(path: project.path.pathString, target: target.name)]),
+                                    testAction: TestAction(targets: [.project(path: project.path.pathString, target: target.name)], configurationName: buildConfiguration),
                                     runAction: RunAction(configurationName: buildConfiguration,
-                                                         executable: .target(name: target.productName),
+                                                         executable: .project(path: project.path.pathString, target: target.name),
                                                          arguments: Arguments(environment: target.environment)))
 
                 try generateScheme(scheme: scheme,

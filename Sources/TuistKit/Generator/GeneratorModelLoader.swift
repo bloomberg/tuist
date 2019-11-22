@@ -240,7 +240,7 @@ extension TuistCore.Project {
                                       generatorPaths: generatorPaths)
         }
 
-        let schemes = manifest.schemes.map { TuistCore.Scheme.from(manifest: $0) }
+        let schemes = manifest.schemes.map { TuistCore.Scheme.from(manifest: $0, projectPath: path) }
 
         let additionalFiles = manifest.additionalFiles.flatMap {
             TuistCore.FileElement.from(manifest: $0,
@@ -582,12 +582,12 @@ extension TuistCore.Dependency {
 }
 
 extension TuistCore.Scheme {
-    static func from(manifest: ProjectDescription.Scheme) -> TuistCore.Scheme {
+    static func from(manifest: ProjectDescription.Scheme, projectPath: AbsolutePath) -> TuistCore.Scheme {
         let name = manifest.name
         let shared = manifest.shared
-        let buildAction = manifest.buildAction.map { TuistCore.BuildAction.from(manifest: $0) }
-        let testAction = manifest.testAction.map { TuistCore.TestAction.from(manifest: $0) }
-        let runAction = manifest.runAction.map { TuistCore.RunAction.from(manifest: $0) }
+        let buildAction = manifest.buildAction.map { TuistCore.BuildAction.from(manifest: $0, projectPath: projectPath) }
+        let testAction = manifest.testAction.map { TuistCore.TestAction.from(manifest: $0, projectPath: projectPath) }
+        let runAction = manifest.runAction.map { TuistCore.RunAction.from(manifest: $0, projectPath: projectPath) }
 
         return Scheme(name: name,
                       shared: shared,
@@ -612,11 +612,11 @@ extension TuistCore.Scheme {
 }
 
 extension TuistCore.BuildAction {
-    static func from(manifest: ProjectDescription.BuildAction) -> TuistCore.BuildAction {
-        let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
-        let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
+    static func from(manifest: ProjectDescription.BuildAction, projectPath: AbsolutePath) -> TuistCore.BuildAction {
+        let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
+        let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
         let targets: [TuistCore.TargetReference] = manifest.targets.map {
-            .project(path: nil, target: $0)
+            .project(path: projectPath.pathString, target: $0)
         }
         return TuistCore.BuildAction(targets: targets, preActions: preActions, postActions: postActions)
     }
@@ -632,14 +632,14 @@ extension TuistCore.BuildAction {
 }
 
 extension TuistCore.TestAction {
-    static func from(manifest: ProjectDescription.TestAction) -> TuistCore.TestAction {
-        let targets = manifest.targets.map { TuistCore.TargetReference(projectPath: nil, name: $0) }
+    static func from(manifest: ProjectDescription.TestAction, projectPath: AbsolutePath) -> TuistCore.TestAction {
+        let targets = manifest.targets.map { TuistCore.TargetReference(projectPath: projectPath.pathString, name: $0) }
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
         let configurationName = manifest.configurationName
         let coverage = manifest.coverage
         let codeCoverageTargets = manifest.codeCoverageTargets
-        let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
-        let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0) }
+        let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
+        let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
         
         return TestAction(targets: targets,
                           arguments: arguments,
@@ -670,13 +670,13 @@ extension TuistCore.TestAction {
 }
 
 extension TuistCore.RunAction {
-    static func from(manifest: ProjectDescription.RunAction) -> TuistCore.RunAction {
+    static func from(manifest: ProjectDescription.RunAction, projectPath: AbsolutePath) -> TuistCore.RunAction {
         let configurationName = manifest.configurationName
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
         
         var executableResolved: TuistCore.TargetReference?
         if let executable = manifest.executable {
-            executableResolved = TargetReference(projectPath: nil, name: executable)
+            executableResolved = TargetReference(projectPath: projectPath.pathString, name: executable)
         }
 
         return RunAction(configurationName: configurationName,
@@ -700,8 +700,9 @@ extension TuistCore.RunAction {
 }
 
 extension TuistCore.ExecutionAction {
-    static func from(manifest: ProjectDescription.ExecutionAction) -> TuistCore.ExecutionAction {
-        let targetReference: TuistCore.TargetReference? = manifest.target.map { .target(name: $0) }
+    static func from(manifest: ProjectDescription.ExecutionAction,
+                     projectPath: AbsolutePath) -> TuistCore.ExecutionAction {
+        let targetReference: TuistCore.TargetReference? = manifest.target.map { .project(path: projectPath.pathString, target: $0) }
         return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targetReference)
     }
     

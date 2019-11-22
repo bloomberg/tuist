@@ -82,18 +82,14 @@ public class ExecutionAction: Equatable {
 }
 
 public class TargetReference: Equatable {
-    public var projectPath: String?
+    public var projectPath: String
     public var name: String
 
-    public static func project(path: String?, target: String) -> TargetReference {
+    public static func project(path: String, target: String) -> TargetReference {
         return .init(projectPath: path, name: target)
     }
-
-    public static func target(name: String) -> TargetReference {
-        return .init(projectPath: nil, name: name)
-    }
     
-    public init(projectPath: String?, name: String) {
+    public init(projectPath: String, name: String) {
         self.projectPath = projectPath
         self.name = name
     }

@@ -52,15 +52,11 @@ public struct WorkspaceDescription {
     // MARK: - BuildActionTargets
     
     public struct TargetReference: Equatable, Codable {
-        public var projectPath: String?
+        public var projectPath: String
         public var targetName: String
         
-        public static func project(path: String?, target: String) -> TargetReference {
+        public static func project(path: String, target: String) -> TargetReference {
             return .init(projectPath: path, targetName: target)
-        }
-        
-        public static func target(name: String) -> TargetReference {
-            return .init(projectPath: nil, targetName: name)
         }
     }
 
@@ -148,14 +144,3 @@ public struct WorkspaceDescription {
         }
     }
 }
-
-extension WorkspaceDescription.TargetReference: ExpressibleByStringLiteral {
-
-    public typealias StringLiteralType = String
-
-    public init(stringLiteral: String) {
-        self = .init(targetName: stringLiteral)
-    }
-}
-
-

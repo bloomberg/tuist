@@ -95,8 +95,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var postActions: [XCScheme.ExecutionAction] = []
 
         try buildAction.targets.forEach { buildActionTarget in
-            guard let projectPath = buildActionTarget.projectPath else { return }
-            let pathToProject = rootPath.appending(RelativePath(projectPath))
+            let pathToProject = rootPath.appending(RelativePath(buildActionTarget.projectPath))
             guard let target = try graph.target(path: pathToProject,
                                                 name: buildActionTarget.name) else { return }
             guard let generatedProject = generatedProjects[pathToProject] else { return }
@@ -135,8 +134,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var postActions: [XCScheme.ExecutionAction] = []
 
         try testAction.targets.forEach { testActionTarget in
-            guard let projectPath = testActionTarget.projectPath else { return }
-            let pathToProject = rootPath.appending(RelativePath(projectPath))
+            let pathToProject = rootPath.appending(RelativePath(testActionTarget.projectPath))
             guard let target = try graph.target(path: pathToProject,
                                                 name: testActionTarget.name) else { return }
             guard let generatedProject = generatedProjects[pathToProject] else { return }
@@ -298,11 +296,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                               generatedProjects: [AbsolutePath: GeneratedProject],
                               rootPath: AbsolutePath) throws -> (TargetNode, GeneratedProject)? {
         
-        guard let projectPath = reference.projectPath else {
-            return nil
-        }
-        
-        let projectAbsolutePath = AbsolutePath(projectPath, relativeTo: rootPath)
+        let projectAbsolutePath = AbsolutePath(reference.projectPath, relativeTo: rootPath)
         guard let targetNode = try graph.target(path: projectAbsolutePath, name: reference.name) else {
             return nil
         }
