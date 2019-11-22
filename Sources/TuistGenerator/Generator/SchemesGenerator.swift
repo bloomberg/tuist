@@ -101,8 +101,8 @@ final class SchemesGenerator: SchemesGenerating {
     ///   - graph: Dependencies graph.
     /// - Returns: Scheme build action.
     func projectBuildAction(project: Project,
-                                    generatedProject: GeneratedProject,
-                                    graph: Graphing) -> XCScheme.BuildAction {
+                            generatedProject: GeneratedProject,
+                            graph: Graphing) -> XCScheme.BuildAction {
         let targets = project.sortedTargetsForProjectScheme(graph: graph)
         let entries: [XCScheme.BuildAction.Entry] = targets.map { (target) -> XCScheme.BuildAction.Entry in
             

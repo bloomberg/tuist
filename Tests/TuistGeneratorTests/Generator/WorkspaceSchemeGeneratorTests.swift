@@ -85,10 +85,11 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         // When
         let result = try XCTUnwrap(got)
         XCTAssertEqual(result.buildActionEntries.count, 2)
+        
         let firstEntry = try XCTUnwrap(result.buildActionEntries[0])
         let firstBuildableReference = firstEntry.buildableReference
-        
         XCTAssertEqual(firstEntry.buildFor, [.analyzing, .archiving, .profiling, .running, .testing])
+        
         let secondEntry = try XCTUnwrap(result.buildActionEntries[1])
         let secondBuildableReference = secondEntry.buildableReference
         XCTAssertEqual(secondEntry.buildFor, [.analyzing, .archiving, .profiling, .running, .testing])
@@ -143,7 +144,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
     
     func test_schemeLaunchAction() throws {
         // Given
-        let scheme = Scheme.test(runAction: RunAction(configurationName: "Release", executable: TargetReference(projectPath: "Projects/Project", name: "App"), arguments:       Arguments(environment:["a": "b"], launch: ["some": true])))
+        let scheme = Scheme.test(runAction: RunAction(configurationName: "Release", executable: TargetReference(projectPath: "Projects/Project", name: "App"), arguments: Arguments(environment:["a": "b"], launch: ["some": true])))
         
         let projectPath = "/somepath/Workspace/Projects/Project"
         
@@ -171,10 +172,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         XCTAssertEqual(buildableReference.buildableName, "App.app")
         XCTAssertEqual(buildableReference.blueprintName, "App")
         XCTAssertEqual(buildableReference.buildableIdentifier, "primary")
-        
     }
-    
-    // TODO profile action tests
     
     private func generatedProject(targets: [Target], projectPath: String = "/project.xcodeproj") -> GeneratedProject {
         var pbxTargets: [String: PBXNativeTarget] = [:]
