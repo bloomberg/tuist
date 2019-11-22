@@ -238,22 +238,36 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
 
         guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }
 
+        return schemeProfileAction(generatedProject: generatedProject,
+                                   rootPath: rootPath,
+                                   project: targetNode.project,
+                                   target: targetNode.target,
+                                   pbxTarget: pbxTarget)
+    }
+    
+    // TODO: can go to helpers
+    private func schemeProfileAction(generatedProject: GeneratedProject,
+                                     rootPath: AbsolutePath,
+                                     project: Project,
+                                     target: Target,
+                                     pbxTarget: PBXNativeTarget) -> XCScheme.ProfileAction? {
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
         let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
-        let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
-
-        if targetNode.target.product.runnable {
+        let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
+        
+        if target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
         } else {
             macroExpansion = buildableReference
         }
-
-        let buildConfiguration = schemeGeneratorHelpers.defaultReleaseBuildConfigurationName(in: targetNode.project)
+        
+        let buildConfiguration = schemeGeneratorHelpers.defaultReleaseBuildConfigurationName(in: project)
         return XCScheme.ProfileAction(buildableProductRunnable: buildableProductRunnable,
                                       buildConfiguration: buildConfiguration,
                                       macroExpansion: macroExpansion)
     }
+
     
     func schemeExecutionAction(action: ExecutionAction,
                                graph: Graphing,
@@ -272,7 +286,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                                      generatedProject: generatedProject)
     }
     
-    
+    // TODO: can be moved to helpers
     private func schemeExecutionAction(action: ExecutionAction) -> XCScheme.ExecutionAction {
         return XCScheme.ExecutionAction(scriptText: action.scriptText,
                                         title: action.title,
@@ -300,6 +314,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         return (targetNode, generatedProject)
     }
     
+    // TODO: can be moved to helpers
     /// Returns the scheme pre/post actions.
     ///
     /// - Parameters:
@@ -308,8 +323,8 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
     ///   - generatedProject: Generated Xcode project.
     /// - Returns: Scheme actions.
     private func schemeExecutionAction(action: ExecutionAction,
-                               target: Target,
-                               generatedProject: GeneratedProject) -> XCScheme.ExecutionAction {
+                                       target: Target,
+                                       generatedProject: GeneratedProject) -> XCScheme.ExecutionAction {
         /// Return Buildable Reference for Scheme Action
         func schemeBuildableReference(target: Target, generatedProject: GeneratedProject) -> XCScheme.BuildableReference? {
             guard let pbxTarget = generatedProject.targets[target.name] else { return nil }
