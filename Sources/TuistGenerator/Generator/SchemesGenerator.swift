@@ -92,67 +92,68 @@ final class SchemesGenerator: SchemesGenerating {
                               archiveAction: schemeArchiveAction(for: project))
         try scheme.write(path: schemePath.path, override: true)
     }
+// not used
+//    /// Returns the build action for the project scheme.
+//    ///
+//    /// - Parameters:
+//    ///   - project: Project manifest.
+//    ///   - generatedProject: Generated Xcode project.
+//    ///   - graph: Dependencies graph.
+//    /// - Returns: Scheme build action.
+//    func projectBuildAction(project: Project,
+//                            generatedProject: GeneratedProject,
+//                            graph: Graphing) -> XCScheme.BuildAction {
+//        let targets = project.sortedTargetsForProjectScheme(graph: graph)
+//        let entries: [XCScheme.BuildAction.Entry] = targets.map { (target) -> XCScheme.BuildAction.Entry in
+//
+//            let pbxTarget = generatedProject.targets[target.name]!
+//            let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: target,
+//                                                                                     pbxTarget: pbxTarget,
+//                                                                                     projectPath: generatedProject.name)
+//            var buildFor: [XCScheme.BuildAction.Entry.BuildFor] = []
+//            if target.product.testsBundle {
+//                buildFor.append(.testing)
+//            } else {
+//                buildFor.append(contentsOf: [.analyzing, .archiving, .profiling, .running, .testing])
+//            }
+//
+//            return XCScheme.BuildAction.Entry(buildableReference: buildableReference,
+//                                              buildFor: buildFor)
+//        }
+//
+//        return XCScheme.BuildAction(buildActionEntries: entries,
+//                                    parallelizeBuild: true,
+//                                    buildImplicitDependencies: true)
+//    }
 
-    /// Returns the build action for the project scheme.
-    ///
-    /// - Parameters:
-    ///   - project: Project manifest.
-    ///   - generatedProject: Generated Xcode project.
-    ///   - graph: Dependencies graph.
-    /// - Returns: Scheme build action.
-    func projectBuildAction(project: Project,
-                            generatedProject: GeneratedProject,
-                            graph: Graphing) -> XCScheme.BuildAction {
-        let targets = project.sortedTargetsForProjectScheme(graph: graph)
-        let entries: [XCScheme.BuildAction.Entry] = targets.map { (target) -> XCScheme.BuildAction.Entry in
-            
-            let pbxTarget = generatedProject.targets[target.name]!
-            let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: target,
-                                                                                     pbxTarget: pbxTarget,
-                                                                                     projectPath: generatedProject.name)
-            var buildFor: [XCScheme.BuildAction.Entry.BuildFor] = []
-            if target.product.testsBundle {
-                buildFor.append(.testing)
-            } else {
-                buildFor.append(contentsOf: [.analyzing, .archiving, .profiling, .running, .testing])
-            }
-
-            return XCScheme.BuildAction.Entry(buildableReference: buildableReference,
-                                              buildFor: buildFor)
-        }
-
-        return XCScheme.BuildAction(buildActionEntries: entries,
-                                    parallelizeBuild: true,
-                                    buildImplicitDependencies: true)
-    }
-
-    /// Generates the test action for the project scheme.
-    ///
-    /// - Parameters:
-    ///   - project: Project manifest.
-    ///   - generatedProject: Generated Xcode project.
-    /// - Returns: Scheme test action.
-    func projectTestAction(project: Project,
-                           generatedProject: GeneratedProject) -> XCScheme.TestAction {
-        var testables: [XCScheme.TestableReference] = []
-        let testTargets = project.targets.filter { $0.product.testsBundle }
-
-        testTargets.forEach { target in
-            let pbxTarget = generatedProject.targets[target.name]!
-            
-            let reference = schemeGeneratorHelpers.targetBuildableReference(target: target,
-                                                                            pbxTarget: pbxTarget,
-                                                                            projectPath: generatedProject.name)
-            let testable = XCScheme.TestableReference(skipped: false,
-                                                      buildableReference: reference)
-            testables.append(testable)
-        }
-
-        let buildConfiguration = schemeGeneratorHelpers.defaultDebugBuildConfigurationName(in: project)
-        return XCScheme.TestAction(buildConfiguration: buildConfiguration,
-                                   macroExpansion: nil,
-                                   testables: testables)
-    }
+// not used
+//    /// Generates the test action for the project scheme.
+//    ///
+//    /// - Parameters:
+//    ///   - project: Project manifest.
+//    ///   - generatedProject: Generated Xcode project.
+//    /// - Returns: Scheme test action.
+//    func projectTestAction(project: Project,
+//                           generatedProject: GeneratedProject) -> XCScheme.TestAction {
+//        var testables: [XCScheme.TestableReference] = []
+//        let testTargets = project.targets.filter { $0.product.testsBundle }
+//
+//        testTargets.forEach { target in
+//            let pbxTarget = generatedProject.targets[target.name]!
+//
+//            let reference = schemeGeneratorHelpers.targetBuildableReference(target: target,
+//                                                                            pbxTarget: pbxTarget,
+//                                                                            projectPath: generatedProject.name)
+//            let testable = XCScheme.TestableReference(skipped: false,
+//                                                      buildableReference: reference)
+//            testables.append(testable)
+//        }
+//
+//        let buildConfiguration = schemeGeneratorHelpers.defaultDebugBuildConfigurationName(in: project)
+//        return XCScheme.TestAction(buildConfiguration: buildConfiguration,
+//                                   macroExpansion: nil,
+//                                   testables: testables)
+//    }
 
     /// Generates the array of BuildableReference for targets that the
     /// coverage report should be generated for them.
@@ -164,10 +165,9 @@ final class SchemesGenerator: SchemesGenerating {
     /// - Returns: Array of buildable references.
     private func testCoverageTargetReferences(testAction: TestAction, project: Project, generatedProject: GeneratedProject) -> [XCScheme.BuildableReference] {
         var codeCoverageTargets: [XCScheme.BuildableReference] = []
-        testAction.codeCoverageTargets.forEach { name in
-
-            guard let target = project.targets.first(where: { $0.name == name }) else { return }
-            guard let pbxTarget = generatedProject.targets[name] else { return }
+        testAction.codeCoverageTargets.forEach { reference in
+            guard let target = project.targets.first(where: { $0.name == reference.name }) else { return }
+            guard let pbxTarget = generatedProject.targets[reference.name] else { return }
             
             let reference = schemeGeneratorHelpers.targetBuildableReference(target: target,
                                                                             pbxTarget: pbxTarget,

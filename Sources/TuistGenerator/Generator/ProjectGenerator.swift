@@ -38,7 +38,7 @@ final class ProjectGenerator: ProjectGenerating {
     let configGenerator: ConfigGenerating
 
     /// Generator for the project schemes.
-    let schemesGenerator: SchemesGenerating
+    let schemesGenerator: WorkspaceSchemesGenerator
 
     /// Generator for the project derived files.
     let derivedFileGenerator: DerivedFileGenerating
@@ -54,7 +54,7 @@ final class ProjectGenerator: ProjectGenerating {
     ///   - derivedFileGenerator: Generator for the project derived files.
     init(targetGenerator: TargetGenerating = TargetGenerator(),
          configGenerator: ConfigGenerating = ConfigGenerator(),
-         schemesGenerator: SchemesGenerating = SchemesGenerator(),
+         schemesGenerator: WorkspaceSchemesGenerator = WorkspaceSchemesGenerator(),
          derivedFileGenerator: DerivedFileGenerating = DerivedFileGenerator()) {
         self.targetGenerator = targetGenerator
         self.configGenerator = configGenerator
@@ -284,8 +284,9 @@ final class ProjectGenerator: ProjectGenerating {
                               generatedProject: GeneratedProject,
                               graph: Graphing) throws {
         try schemesGenerator.generateProjectSchemes(project: project,
-                                                   generatedProject: generatedProject,
-                                                   graph: graph)
+                                                    xcprojectPath: generatedProject.path,
+                                                    generatedProject: generatedProject,
+                                                    graph: graph)
     }
 
     private func determineProjectConstants(graph: Graphing) throws -> ProjectConstants {

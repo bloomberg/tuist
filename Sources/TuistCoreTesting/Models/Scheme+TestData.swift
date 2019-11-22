@@ -25,7 +25,7 @@ public extension TestAction {
                      arguments: Arguments? = Arguments.test(),
                      configurationName: String = BuildConfiguration.debug.name,
                      coverage: Bool = false,
-                     codeCoverageTargets: [String] = [],
+                     codeCoverageTargets: [TargetReference] = [],
                      preActions: [ExecutionAction] = [],
                      postActions: [ExecutionAction] = []) -> TestAction {
         return TestAction(targets: targets,

@@ -9,13 +9,30 @@ protocol WorkspaceSchemesGenerating {
     /// Generates the schemes for the workspace targets.
     ///
     /// - Parameters:
-    ///   - project: Project manifest.
+    ///   - workspace: Workspace model.
+    ///   - xcworkspacePath: Path to the workspace.
     ///   - generatedProject: Generated Xcode project.
+    ///   - graph: Tuist graph.
     /// - Throws: A FatalError if the generation of the schemes fails.
     func generateWorkspaceSchemes(workspace: Workspace,
                                   xcworkspacePath: AbsolutePath,
                                   generatedProjects: [AbsolutePath: GeneratedProject],
                                   graph: Graphing) throws
+    
+    /// Generates the schemes for the project targets.
+    ///
+    /// - Parameters:
+    ///   - project: Project manifest.
+    ///   - xcprojectPath: Path to the Xcode project.
+    ///   - generatedProject: Generated Xcode project.
+    ///   - graph: Tuist graph.
+    /// - Throws: A FatalError if the generation of the schemes fails.
+    func generateProjectSchemes(project: Project,
+                                xcprojectPath: AbsolutePath,
+                                generatedProject: GeneratedProject,
+                                graph: Graphing) throws
+    
+    
 }
 
 final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
@@ -37,7 +54,39 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         }
     }
     
-    // Generates the schemes for a workspace.
+    func generateProjectSchemes(project: Project,
+                                xcprojectPath: AbsolutePath,
+                                generatedProject: GeneratedProject,
+                                graph: Graphing) throws {
+         /// Generate scheme from manifest
+         try project.schemes.forEach { scheme in
+             try generateScheme(scheme: scheme,
+                                xcworkspacePath: xcprojectPath,
+                                workspacePath: project.path,
+                                graph: graph,
+                                generatedProjects: [project.path: generatedProject])
+         }
+         /// Generate scheme for every targets in Project that is not defined in Manifest
+         let buildConfiguration = schemeGeneratorHelpers.defaultDebugBuildConfigurationName(in: project)
+         try project.targets.forEach { target in
+            let targetReference = TargetReference.project(path: project.path, target: target.name)
+             if !project.schemes.contains(where: { $0.name == target.name }) {
+                 let scheme = Scheme(name: target.name,
+                                     shared: true,
+                                     buildAction: BuildAction(targets: [targetReference]),
+                                     testAction: TestAction(targets: [targetReference], configurationName: buildConfiguration),
+                                     runAction: RunAction(configurationName: buildConfiguration,
+                                                          executable: targetReference, //TODO: make sure we lookup the product name when we construct the run action
+                                                          arguments: Arguments(environment: target.environment)))
+                 try generateScheme(scheme: scheme,
+                                    xcworkspacePath: xcprojectPath,
+                                    workspacePath: project.path,
+                                    graph: graph,
+                                    generatedProjects: [project.path: generatedProject])
+            }
+        }
+    }
+    
     private func generateScheme(scheme: Scheme,
                                 xcworkspacePath: AbsolutePath,
                                 workspacePath: AbsolutePath,
@@ -165,8 +214,11 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
             environments = schemeGeneratorHelpers.environmentVariables(arguments.environment)
         }
         
-        let codeCoverageTargets = try testAction.targets.compactMap {
-            try testCoverageTargetReferences(target: $0, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath)
+        let codeCoverageTargets = try testAction.codeCoverageTargets.compactMap {
+            try testCoverageTargetReferences(target: $0,
+                                             graph: graph,
+                                             generatedProjects: generatedProjects,
+                                             rootPath: rootPath)
         }
 
         let onlyGenerateCoverageForSpecifiedTargets = codeCoverageTargets.count > 0 ? true : nil
@@ -236,36 +288,22 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
 
         guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }
 
-        return schemeProfileAction(generatedProject: generatedProject,
-                                   rootPath: rootPath,
-                                   project: targetNode.project,
-                                   target: targetNode.target,
-                                   pbxTarget: pbxTarget)
-    }
-    
-    // TODO: can go to helpers
-    private func schemeProfileAction(generatedProject: GeneratedProject,
-                                     rootPath: AbsolutePath,
-                                     project: Project,
-                                     target: Target,
-                                     pbxTarget: PBXNativeTarget) -> XCScheme.ProfileAction? {
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
         let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
-        let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
+        let buildableReference = schemeGeneratorHelpers.targetBuildableReference(target: targetNode.target, pbxTarget: pbxTarget, projectPath: relativeXcodeProjectPath.pathString)
         
-        if target.product.runnable {
+        if targetNode.target.product.runnable {
             buildableProductRunnable = XCScheme.BuildableProductRunnable(buildableReference: buildableReference, runnableDebuggingMode: "0")
         } else {
             macroExpansion = buildableReference
         }
         
-        let buildConfiguration = schemeGeneratorHelpers.defaultReleaseBuildConfigurationName(in: project)
+        let buildConfiguration = schemeGeneratorHelpers.defaultReleaseBuildConfigurationName(in: targetNode.project)
         return XCScheme.ProfileAction(buildableProductRunnable: buildableProductRunnable,
                                       buildConfiguration: buildConfiguration,
                                       macroExpansion: macroExpansion)
     }
-
     
     func schemeExecutionAction(action: ExecutionAction,
                                graph: Graphing,

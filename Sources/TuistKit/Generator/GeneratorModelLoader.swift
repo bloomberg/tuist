@@ -637,7 +637,7 @@ extension TuistCore.TestAction {
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
         let configurationName = manifest.configurationName
         let coverage = manifest.coverage
-        let codeCoverageTargets = manifest.codeCoverageTargets
+        let codeCoverageTargets = manifest.codeCoverageTargets.map { TuistCore.TargetReference(projectPath: projectPath, name: $0) }
         let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
         let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
         
@@ -655,7 +655,7 @@ extension TuistCore.TestAction {
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
         let configurationName = manifest.configurationName
         let coverage = manifest.coverage
-        let codeCoverageTargets = manifest.codeCoverageTargets
+        let codeCoverageTargets = manifest.codeCoverageTargets.map { TuistCore.TargetReference(projectPath: workspacePath, name: $0) }
         let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0, workspacePath: workspacePath) }
         let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0, workspacePath: workspacePath) }
 
