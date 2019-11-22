@@ -19,13 +19,13 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
     
     func test_schemeBuildAction_whenSingleProject() throws {
         // Given
-        let scheme = Scheme.test(buildAction: BuildAction(targets: [TargetReference(projectPath: "Projects/Project", name: "App")]))
-        let projectPath = "/somepath/Workspace/Projects/Project"
+        let projectPath = AbsolutePath("/somepath/Workspace/Projects/Project")
+        let scheme = Scheme.test(buildAction: BuildAction(targets: [TargetReference(projectPath: projectPath, name: "App")]))
         
         let app = Target.test(name: "App", product: .app)
         let targets = [app]
         
-        let project = Project.test(path: AbsolutePath(projectPath))
+        let project = Project.test(path: projectPath)
         let graph = Graph.create(dependencies: [
                                                 (project: project, target: app, dependencies: [])
                                                 ])
@@ -34,7 +34,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         let got = try subject.schemeBuildAction(scheme: scheme,
                                                 graph: graph,
                                                 rootPath: AbsolutePath("/somepath/Workspace"),
-                                                generatedProjects: [AbsolutePath(projectPath):
+                                                generatedProjects: [projectPath:
                                                     generatedProject(targets: targets, projectPath: "\(projectPath)/project.xcodeproj")])
 
         // When
@@ -55,19 +55,21 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
     
     func test_schemeBuildAction_whenMultipleProject() throws {
         // Given
-        let scheme = Scheme.test(buildAction: BuildAction(targets: [
-                                                                    TargetReference(projectPath: "Projects/ProjectA", name: "FrameworkA"),
-                                                                    TargetReference(projectPath: "Projects/ProjectB", name: "FrameworkB")
-                                                                    ]))
-        let projectAPath = "/somepath/Workspace/Projects/ProjectA"
-        let projectBPath = "/somepath/Workspace/Projects/ProjectB"
+        let projectAPath = AbsolutePath("/somepath/Workspace/Projects/ProjectA")
+        let projectBPath = AbsolutePath("/somepath/Workspace/Projects/ProjectB")
+        
+        let buildAction = BuildAction(targets: [
+            TargetReference(projectPath: projectAPath, name: "FrameworkA"),
+            TargetReference(projectPath: projectBPath, name: "FrameworkB")
+        ])
+        let scheme = Scheme.test(buildAction: buildAction)
         
         let frameworkA = Target.test(name: "FrameworkA", product: .staticFramework)
         let frameworkB = Target.test(name: "FrameworkB", product: .staticFramework)
         let targets = [frameworkA, frameworkB]
         
-        let projectA = Project.test(path: AbsolutePath(projectAPath))
-        let projectB = Project.test(path: AbsolutePath(projectBPath))
+        let projectA = Project.test(path: projectAPath)
+        let projectB = Project.test(path: projectBPath)
         let graph = Graph.create(dependencies: [
                                                 (project: projectA, target: frameworkA, dependencies: []),
                                                 (project: projectB, target: frameworkB, dependencies: [])
@@ -78,8 +80,8 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
                                                 graph: graph,
                                                 rootPath: AbsolutePath("/somepath/Workspace"),
                                                 generatedProjects: [
-                                                                    AbsolutePath(projectAPath): generatedProject(targets: targets, projectPath: "\(projectAPath)/project.xcodeproj"),
-                                                                    AbsolutePath(projectBPath): generatedProject(targets: targets, projectPath: "\(projectBPath)/project.xcodeproj")
+                                                                    projectAPath: generatedProject(targets: targets, projectPath: "\(projectAPath)/project.xcodeproj"),
+                                                                    projectBPath: generatedProject(targets: targets, projectPath: "\(projectBPath)/project.xcodeproj")
                                                                     ])
 
         // When
@@ -110,14 +112,15 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
     
     func test_schemeTestAction() throws {
         // Given
-        let scheme = Scheme.test(testAction: TestAction(targets: [TargetReference(projectPath: "Projects/Project", name: "AppTests")], configurationName: "Release"))
-        let projectPath = "/somepath/Workspace/Projects/Project"
+        let projectPath = AbsolutePath("/somepath/Workspace/Projects/Project")
+
+        let scheme = Scheme.test(testAction: TestAction(targets: [TargetReference(projectPath: projectPath, name: "AppTests")], configurationName: "Release"))
         
         let app = Target.test(name: "App", product: .app)
         let appTests = Target.test(name: "AppTests", product: .unitTests)
         let targets = [app, appTests]
                
-        let project = Project.test(path: AbsolutePath(projectPath))
+        let project = Project.test(path: projectPath)
         let graph = Graph.create(dependencies: [
                                                 (project: project, target: app, dependencies: []),
                                                 (project: project, target: appTests, dependencies: [app])])
@@ -125,7 +128,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         let generatedProjectWithTests = generatedProject(targets: targets, projectPath: "\(projectPath)/project.xcodeproj")
         
         // When
-        let got = try subject.schemeTestAction(scheme: scheme, graph: graph, rootPath: AbsolutePath("/somepath/Workspace"), generatedProjects: [AbsolutePath(projectPath): generatedProjectWithTests])
+        let got = try subject.schemeTestAction(scheme: scheme, graph: graph, rootPath: AbsolutePath("/somepath/Workspace"), generatedProjects: [projectPath: generatedProjectWithTests])
         
         // Then
         let result = try XCTUnwrap(got)
@@ -144,20 +147,20 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
     
     func test_schemeLaunchAction() throws {
         // Given
-        let scheme = Scheme.test(runAction: RunAction(configurationName: "Release", executable: TargetReference(projectPath: "Projects/Project", name: "App"), arguments: Arguments(environment:["a": "b"], launch: ["some": true])))
-        
-        let projectPath = "/somepath/Workspace/Projects/Project"
-        
+        let projectPath = AbsolutePath("/somepath/Workspace/Projects/Project")
+
+        let scheme = Scheme.test(runAction: RunAction(configurationName: "Release", executable: TargetReference(projectPath: projectPath, name: "App"), arguments: Arguments(environment:["a": "b"], launch: ["some": true])))
+                
         let app = Target.test(name: "App", product: .app, environment: ["a": "b"])
         let pbxTarget = PBXNativeTarget(name: "App")
                
-        let project = Project.test(path: AbsolutePath(projectPath))
+        let project = Project.test(path: projectPath)
         let graph = Graph.create(dependencies: [(project: project, target: app, dependencies: [])])
         
         let generatedProject = GeneratedProject.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: ["App": pbxTarget])
         
         // When
-        let got = try subject.schemeLaunchAction(scheme: scheme, graph: graph, rootPath: AbsolutePath("/somepath/Workspace"), generatedProjects: [AbsolutePath(projectPath): generatedProject])
+        let got = try subject.schemeLaunchAction(scheme: scheme, graph: graph, rootPath: AbsolutePath("/somepath/Workspace"), generatedProjects: [projectPath: generatedProject])
         
         // Then
         let result = try XCTUnwrap(got)

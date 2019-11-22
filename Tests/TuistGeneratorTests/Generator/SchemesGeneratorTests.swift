@@ -121,14 +121,15 @@ final class SchemeGeneratorTests: XCTestCase {
     }
 
     func test_schemeTestAction_with_executionAction() {
+        let projectPath = AbsolutePath("/somepath/Project")
         let testTarget = Target.test(name: "AppTests", product: .unitTests)
 
-        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: nil, name: "AppTests"))
-        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: nil, name: "AppTests"))
-        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "AppTests")], preActions: [preAction], postActions: [postAction])
+        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: projectPath, name: "AppTests"))
+        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: projectPath, name: "AppTests"))
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "AppTests")], preActions: [preAction], postActions: [postAction])
 
         let scheme = Scheme.test(name: "AppTests", shared: true, testAction: testAction)
-        let project = Project.test(targets: [testTarget])
+        let project = Project.test(path: projectPath, targets: [testTarget])
 
         let pbxTestTarget = PBXNativeTarget(name: "AppTests", productType: .unitTestBundle)
         let generatedProject = GeneratedProject.test(targets: ["AppTests": pbxTestTarget])
@@ -159,14 +160,16 @@ final class SchemeGeneratorTests: XCTestCase {
     }
 
     func test_schemeTestAction_with_codeCoverageTargets() {
+        let projectPath = AbsolutePath("/somepath/Project")
+
         let target = Target.test(name: "App", product: .app)
         let testTarget = Target.test(name: "AppTests", product: .unitTests)
 
-        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "AppTests")], coverage: true, codeCoverageTargets: ["App"])
-        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "App")])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "AppTests")], coverage: true, codeCoverageTargets: ["App"])
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "App")])
 
         let scheme = Scheme.test(name: "AppTests", shared: true, buildAction: buildAction, testAction: testAction)
-        let project = Project.test(targets: [target, testTarget])
+        let project = Project.test(path: projectPath, targets: [target, testTarget])
 
         let pbxTarget = PBXNativeTarget(name: "App", productType: .application)
         let pbxTestTarget = PBXNativeTarget(name: "AppTests", productType: .unitTestBundle)
@@ -206,15 +209,17 @@ final class SchemeGeneratorTests: XCTestCase {
     }
 
     func test_schemeBuildAction_with_executionAction() throws {
+        let projectPath = AbsolutePath("/somepath/Project")
+
         let target = Target.test(name: "App", product: .app)
         let pbxTarget = PBXNativeTarget(name: "App")
 
-        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: nil, name: "App"))
-        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: nil, name: "App"))
-        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "Library")], preActions: [preAction], postActions: [postAction])
+        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: projectPath, name: "App"))
+        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: projectPath, name: "App"))
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")], preActions: [preAction], postActions: [postAction])
 
         let scheme = Scheme.test(name: "App", shared: true, buildAction: buildAction)
-        let project = Project.test(targets: [target])
+        let project = Project.test(path: projectPath, targets: [target])
         let generatedProject = GeneratedProject.test(targets: ["App": pbxTarget])
 
         let got = try subject.schemeBuildAction(scheme: scheme, project: project, generatedProject: generatedProject)
@@ -264,15 +269,17 @@ final class SchemeGeneratorTests: XCTestCase {
     }
 
     func test_schemeLaunchAction_when_notRunnableTarget() {
+        let projectPath = AbsolutePath("/somepath/Project")
+        
         let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
         let pbxTarget = PBXNativeTarget(name: "App")
 
-        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
-        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
 
         let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
 
-        let project = Project.test(path: AbsolutePath("/project.xcodeproj"), targets: [target])
+        let project = Project.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: [target])
         let generatedProject = GeneratedProject.test(targets: ["Library": pbxTarget])
 
         let got = subject.schemeLaunchAction(scheme: scheme, project: project, generatedProject: generatedProject)
@@ -318,13 +325,15 @@ final class SchemeGeneratorTests: XCTestCase {
     }
 
     func test_schemeProfileAction_when_notRunnableTarget() {
+        let projectPath = AbsolutePath("/somepath/Project")
+        
         let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
 
-        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
-        let testAction = TestAction.test(targets: [TargetReference(projectPath: nil, name: "Library")])
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
         let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
 
-        let project = Project.test(path: AbsolutePath("/project.xcodeproj"), targets: [target])
+        let project = Project.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: [target])
         let pbxTarget = PBXNativeTarget(name: "Library")
         let generatedProject = GeneratedProject.test(targets: ["Library": pbxTarget])
 

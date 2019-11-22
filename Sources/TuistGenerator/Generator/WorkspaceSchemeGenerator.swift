@@ -95,7 +95,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var postActions: [XCScheme.ExecutionAction] = []
 
         try buildAction.targets.forEach { buildActionTarget in
-            let pathToProject = rootPath.appending(RelativePath(buildActionTarget.projectPath))
+            let pathToProject = buildActionTarget.projectPath
             guard let target = try graph.target(path: pathToProject,
                                                 name: buildActionTarget.name) else { return }
             guard let generatedProject = generatedProjects[pathToProject] else { return }
@@ -134,7 +134,7 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
         var postActions: [XCScheme.ExecutionAction] = []
 
         try testAction.targets.forEach { testActionTarget in
-            let pathToProject = rootPath.appending(RelativePath(testActionTarget.projectPath))
+            let pathToProject = testActionTarget.projectPath
             guard let target = try graph.target(path: pathToProject,
                                                 name: testActionTarget.name) else { return }
             guard let generatedProject = generatedProjects[pathToProject] else { return }
@@ -296,12 +296,12 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                               generatedProjects: [AbsolutePath: GeneratedProject],
                               rootPath: AbsolutePath) throws -> (TargetNode, GeneratedProject)? {
         
-        let projectAbsolutePath = AbsolutePath(reference.projectPath, relativeTo: rootPath)
-        guard let targetNode = try graph.target(path: projectAbsolutePath, name: reference.name) else {
+        
+        guard let targetNode = try graph.target(path: reference.projectPath, name: reference.name) else {
             return nil
         }
         
-        guard let generatedProject = generatedProjects[projectAbsolutePath] else {
+        guard let generatedProject = generatedProjects[reference.projectPath] else {
             return nil
         }
         
