@@ -276,110 +276,111 @@ final class SchemeGeneratorTests: XCTestCase {
 //        XCTAssertEqual(buildableReference?.blueprintName, "App")
 //        XCTAssertEqual(buildableReference?.buildableIdentifier, "primary")
 //    }
+//    Done
+//    func test_schemeLaunchAction_when_notRunnableTarget() {
+//        let projectPath = AbsolutePath("/somepath/Project")
+//
+//        let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
+//        let pbxTarget = PBXNativeTarget(name: "App")
+//
+//        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+//        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+//
+//        let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
+//
+//        let project = Project.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: [target])
+//        let generatedProject = GeneratedProject.test(targets: ["Library": pbxTarget])
+//
+//        let got = subject.schemeLaunchAction(scheme: scheme, project: project, generatedProject: generatedProject)
+//
+//        XCTAssertNil(got?.runnable?.buildableReference)
+//
+//        XCTAssertEqual(got?.buildConfiguration, "Debug")
+//        XCTAssertEqual(got?.macroExpansion?.referencedContainer, "container:project.xcodeproj")
+//        XCTAssertEqual(got?.macroExpansion?.buildableName, "libLibrary.dylib")
+//        XCTAssertEqual(got?.macroExpansion?.blueprintName, "Library")
+//        XCTAssertEqual(got?.macroExpansion?.buildableIdentifier, "primary")
+//    }
+//  Done
+//    func test_schemeProfileAction_when_runnableTarget() {
+//        let target = Target.test(name: "App", platform: .iOS, product: .app)
+//        let scheme = Scheme.test()
+//        let pbxTarget = PBXNativeTarget(name: "App")
+//        let project = Project.test(path: AbsolutePath("/project.xcodeproj"), targets: [target])
+//        let generatedProject = GeneratedProject.test(targets: ["App": pbxTarget])
+//
+//        let got = subject.schemeProfileAction(scheme: scheme, project: project, generatedProject: generatedProject)
+//
+//        let buildable = got?.buildableProductRunnable?.buildableReference
+//
+//        XCTAssertNil(got?.macroExpansion)
+//        XCTAssertEqual(got?.buildableProductRunnable?.runnableDebuggingMode, "0")
+//        XCTAssertEqual(buildable?.referencedContainer, "container:project.xcodeproj")
+//        XCTAssertEqual(buildable?.buildableName, target.productNameWithExtension)
+//        XCTAssertEqual(buildable?.blueprintName, target.name)
+//        XCTAssertEqual(buildable?.buildableIdentifier, "primary")
+//
+//        XCTAssertEqual(got?.buildConfiguration, "Release")
+//        XCTAssertEqual(got?.preActions, [])
+//        XCTAssertEqual(got?.postActions, [])
+//        XCTAssertEqual(got?.shouldUseLaunchSchemeArgsEnv, true)
+//        XCTAssertEqual(got?.savedToolIdentifier, "")
+//        XCTAssertEqual(got?.ignoresPersistentStateOnLaunch, false)
+//        XCTAssertEqual(got?.useCustomWorkingDirectory, false)
+//        XCTAssertEqual(got?.debugDocumentVersioning, true)
+//        XCTAssertNil(got?.commandlineArguments)
+//        XCTAssertNil(got?.environmentVariables)
+//        XCTAssertEqual(got?.enableTestabilityWhenProfilingTests, true)
+//    }
 
-    func test_schemeLaunchAction_when_notRunnableTarget() {
-        let projectPath = AbsolutePath("/somepath/Project")
-        
-        let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
-        let pbxTarget = PBXNativeTarget(name: "App")
-
-        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
-        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
-
-        let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
-
-        let project = Project.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: [target])
-        let generatedProject = GeneratedProject.test(targets: ["Library": pbxTarget])
-
-        let got = subject.schemeLaunchAction(scheme: scheme, project: project, generatedProject: generatedProject)
-
-        XCTAssertNil(got?.runnable?.buildableReference)
-
-        XCTAssertEqual(got?.buildConfiguration, "Debug")
-        XCTAssertEqual(got?.macroExpansion?.referencedContainer, "container:project.xcodeproj")
-        XCTAssertEqual(got?.macroExpansion?.buildableName, "libLibrary.dylib")
-        XCTAssertEqual(got?.macroExpansion?.blueprintName, "Library")
-        XCTAssertEqual(got?.macroExpansion?.buildableIdentifier, "primary")
-    }
-
-    func test_schemeProfileAction_when_runnableTarget() {
-        let target = Target.test(name: "App", platform: .iOS, product: .app)
-        let scheme = Scheme.test()
-        let pbxTarget = PBXNativeTarget(name: "App")
-        let project = Project.test(path: AbsolutePath("/project.xcodeproj"), targets: [target])
-        let generatedProject = GeneratedProject.test(targets: ["App": pbxTarget])
-
-        let got = subject.schemeProfileAction(scheme: scheme, project: project, generatedProject: generatedProject)
-
-        let buildable = got?.buildableProductRunnable?.buildableReference
-
-        XCTAssertNil(got?.macroExpansion)
-        XCTAssertEqual(got?.buildableProductRunnable?.runnableDebuggingMode, "0")
-        XCTAssertEqual(buildable?.referencedContainer, "container:project.xcodeproj")
-        XCTAssertEqual(buildable?.buildableName, target.productNameWithExtension)
-        XCTAssertEqual(buildable?.blueprintName, target.name)
-        XCTAssertEqual(buildable?.buildableIdentifier, "primary")
-
-        XCTAssertEqual(got?.buildConfiguration, "Release")
-        XCTAssertEqual(got?.preActions, [])
-        XCTAssertEqual(got?.postActions, [])
-        XCTAssertEqual(got?.shouldUseLaunchSchemeArgsEnv, true)
-        XCTAssertEqual(got?.savedToolIdentifier, "")
-        XCTAssertEqual(got?.ignoresPersistentStateOnLaunch, false)
-        XCTAssertEqual(got?.useCustomWorkingDirectory, false)
-        XCTAssertEqual(got?.debugDocumentVersioning, true)
-        XCTAssertNil(got?.commandlineArguments)
-        XCTAssertNil(got?.environmentVariables)
-        XCTAssertEqual(got?.enableTestabilityWhenProfilingTests, true)
-    }
-
-    func test_schemeProfileAction_when_notRunnableTarget() {
-        let projectPath = AbsolutePath("/somepath/Project")
-        
-        let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
-
-        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
-        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
-        let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
-
-        let project = Project.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: [target])
-        let pbxTarget = PBXNativeTarget(name: "Library")
-        let generatedProject = GeneratedProject.test(targets: ["Library": pbxTarget])
-
-        let got = subject.schemeProfileAction(scheme: scheme, project: project, generatedProject: generatedProject)
-
-        let buildable = got?.buildableProductRunnable?.buildableReference
-
-        XCTAssertNil(buildable)
-        XCTAssertEqual(got?.buildConfiguration, "Release")
-        XCTAssertEqual(got?.preActions, [])
-        XCTAssertEqual(got?.postActions, [])
-        XCTAssertEqual(got?.shouldUseLaunchSchemeArgsEnv, true)
-        XCTAssertEqual(got?.savedToolIdentifier, "")
-        XCTAssertEqual(got?.ignoresPersistentStateOnLaunch, false)
-        XCTAssertEqual(got?.useCustomWorkingDirectory, false)
-        XCTAssertEqual(got?.debugDocumentVersioning, true)
-        XCTAssertNil(got?.commandlineArguments)
-        XCTAssertNil(got?.environmentVariables)
-        XCTAssertEqual(got?.enableTestabilityWhenProfilingTests, true)
-
-        XCTAssertEqual(got?.buildConfiguration, "Release")
-        XCTAssertEqual(got?.macroExpansion?.referencedContainer, "container:project.xcodeproj")
-        XCTAssertEqual(got?.macroExpansion?.buildableName, "libLibrary.dylib")
-        XCTAssertEqual(got?.macroExpansion?.blueprintName, "Library")
-        XCTAssertEqual(got?.macroExpansion?.buildableIdentifier, "primary")
-    }
-
-    func test_schemeAnalyzeAction() {
-        let got = subject.schemeAnalyzeAction(for: .test())
-        XCTAssertEqual(got.buildConfiguration, "Debug")
-    }
-
-    func test_schemeArchiveAction() {
-        let got = subject.schemeArchiveAction(for: .test())
-        XCTAssertEqual(got.buildConfiguration, "Release")
-        XCTAssertEqual(got.revealArchiveInOrganizer, true)
-    }
+//      Done
+//    func test_schemeProfileAction_when_notRunnableTarget() {
+//        let projectPath = AbsolutePath("/somepath/Project")
+//
+//        let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
+//
+//        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+//        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+//        let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
+//
+//        let project = Project.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: [target])
+//        let pbxTarget = PBXNativeTarget(name: "Library")
+//        let generatedProject = GeneratedProject.test(targets: ["Library": pbxTarget])
+//
+//        let got = subject.schemeProfileAction(scheme: scheme, project: project, generatedProject: generatedProject)
+//
+//        let buildable = got?.buildableProductRunnable?.buildableReference
+//
+//        XCTAssertNil(buildable)
+//        XCTAssertEqual(got?.buildConfiguration, "Release")
+//        XCTAssertEqual(got?.preActions, [])
+//        XCTAssertEqual(got?.postActions, [])
+//        XCTAssertEqual(got?.shouldUseLaunchSchemeArgsEnv, true)
+//        XCTAssertEqual(got?.savedToolIdentifier, "")
+//        XCTAssertEqual(got?.ignoresPersistentStateOnLaunch, false)
+//        XCTAssertEqual(got?.useCustomWorkingDirectory, false)
+//        XCTAssertEqual(got?.debugDocumentVersioning, true)
+//        XCTAssertNil(got?.commandlineArguments)
+//        XCTAssertNil(got?.environmentVariables)
+//        XCTAssertEqual(got?.enableTestabilityWhenProfilingTests, true)
+//
+//        XCTAssertEqual(got?.buildConfiguration, "Release")
+//        XCTAssertEqual(got?.macroExpansion?.referencedContainer, "container:project.xcodeproj")
+//        XCTAssertEqual(got?.macroExpansion?.buildableName, "libLibrary.dylib")
+//        XCTAssertEqual(got?.macroExpansion?.blueprintName, "Library")
+//        XCTAssertEqual(got?.macroExpansion?.buildableIdentifier, "primary")
+//    }
+//    // not used
+//    func test_schemeAnalyzeAction() {
+//        let got = subject.schemeAnalyzeAction(for: .test())
+//        XCTAssertEqual(got.buildConfiguration, "Debug")
+//    }
+//      // not used
+//    func test_schemeArchiveAction() {
+//        let got = subject.schemeArchiveAction(for: .test())
+//        XCTAssertEqual(got.buildConfiguration, "Release")
+//        XCTAssertEqual(got.revealArchiveInOrganizer, true)
+//    }
 
     // MARK: - Private
 
