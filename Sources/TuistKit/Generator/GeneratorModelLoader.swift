@@ -705,7 +705,7 @@ extension TuistCore.ExecutionAction {
     static func from(manifest: ProjectDescription.ExecutionAction,
                      projectPath: AbsolutePath) -> TuistCore.ExecutionAction {
         let targetReference: TuistCore.TargetReference? = manifest.target.map { .project(path: projectPath, target: $0) }
-        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targeGeneratorModelLoader.swift:291tReference)
+        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targetReference)
     }
     
     static func from(manifest: WorkspaceDescription.ExecutionAction, workspacePath: AbsolutePath) -> TuistCore.ExecutionAction {

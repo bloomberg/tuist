@@ -10,11 +10,11 @@ import XCTest
 @testable import TuistSupportTesting
 
 final class WorkspaceSchemeGeneratorTests: XCTestCase {
-    var subject: WorkspaceSchemesGenerator!
+    var subject: SchemesGenerator!
 
     override func setUp() {
         super.setUp()
-        subject = WorkspaceSchemesGenerator()
+        subject = SchemesGenerator()
     }
     
     // MARK: - Build Action Tests
