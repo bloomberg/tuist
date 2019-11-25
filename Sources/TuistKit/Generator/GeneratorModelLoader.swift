@@ -288,6 +288,7 @@ extension TuistCore.Project {
 }
 
 extension TuistCore.Target {
+    // swiftlint:disable:next function_body_length
     static func from(manifest: ProjectDescription.Target,
                      path: AbsolutePath,
                      generatorPaths: GeneratorPaths) throws -> TuistCore.Target {
@@ -306,8 +307,7 @@ extension TuistCore.Target {
 
         let settings = manifest.settings.map { TuistCore.Settings.from(manifest: $0, path: path, generatorPaths: generatorPaths) }
         let sources = try TuistCore.Target.sources(projectPath: path, sources: manifest.sources?.globs.map {
-            (glob: generatorPaths.resolve(path: $0.glob).pathString, compilerFlags: $0.compilerFlags)
-        } ?? [])
+            (glob: generatorPaths.resolve(path: $0.glob).pathString, compilerFlags: $0.compilerFlags) } ?? [])
 
         let resourceFilter = { (path: AbsolutePath) -> Bool in
             TuistCore.Target.isResource(path: path)
@@ -651,7 +651,8 @@ extension TuistCore.TestAction {
     }
     
     static func from(manifest: WorkspaceDescription.TestAction, workspacePath: AbsolutePath) -> TuistCore.TestAction {
-        let targets = manifest.targets.map { TuistCore.TargetReference(projectPath: workspacePath.appending(RelativePath($0.projectPath)), name: $0.targetName) }
+        let targets = manifest.targets.map { TuistCore.TargetReference(projectPath: workspacePath.appending(RelativePath($0.projectPath)),
+                                                                       name: $0.targetName) }
         let arguments = manifest.arguments.map { TuistCore.Arguments.from(manifest: $0) }
         let configurationName = manifest.configurationName
         let coverage = manifest.coverage
@@ -690,7 +691,8 @@ extension TuistCore.RunAction {
         
         var executableResolved: TuistCore.TargetReference?
         if let executable = manifest.executable {
-            executableResolved = TargetReference(projectPath: workspacePath.appending(RelativePath(executable.projectPath)), name: executable.targetName)
+            executableResolved = TargetReference(projectPath: workspacePath.appending(RelativePath(executable.projectPath)),
+                                                 name: executable.targetName)
         }
 
         return RunAction(configurationName: configurationName,
@@ -703,7 +705,7 @@ extension TuistCore.ExecutionAction {
     static func from(manifest: ProjectDescription.ExecutionAction,
                      projectPath: AbsolutePath) -> TuistCore.ExecutionAction {
         let targetReference: TuistCore.TargetReference? = manifest.target.map { .project(path: projectPath, target: $0) }
-        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targetReference)
+        return ExecutionAction(title: manifest.title, scriptText: manifest.scriptText, target: targeGeneratorModelLoader.swift:291tReference)
     }
     
     static func from(manifest: WorkspaceDescription.ExecutionAction, workspacePath: AbsolutePath) -> TuistCore.ExecutionAction {

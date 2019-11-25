@@ -32,7 +32,6 @@ extension Workspace {
                          additionalFiles: additionalFiles + files.map { .file(path: $0) })
     }
 
-
     public func replacing(projects: [AbsolutePath]) -> Workspace {
         return Workspace(path: path,
                          name: name,

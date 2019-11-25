@@ -101,12 +101,14 @@ final class BuildPhaseGenerator: BuildPhaseGenerating {
                          pbxproj: PBXProj,
                          sourceRootPath: AbsolutePath) throws {
         try actions.forEach { action in
+            let inputFileListPaths = action.inputFileListPaths.map { $0.relative(to: sourceRootPath).pathString }
+            let outputFileListPaths = action.outputFileListPaths.map { $0.relative(to: sourceRootPath).pathString }
             let buildPhase = try PBXShellScriptBuildPhase(files: [],
                                                           name: action.name,
                                                           inputPaths: action.inputPaths.map { $0.relative(to: sourceRootPath).pathString },
                                                           outputPaths: action.outputPaths.map { $0.relative(to: sourceRootPath).pathString },
-                                                          inputFileListPaths: action.inputFileListPaths.map { $0.relative(to: sourceRootPath).pathString },
-                                                          outputFileListPaths: action.outputFileListPaths.map { $0.relative(to: sourceRootPath).pathString },
+                                                          inputFileListPaths: inputFileListPaths,
+                                                          outputFileListPaths: outputFileListPaths,
                                                           shellPath: "/bin/sh",
                                                           shellScript: action.shellScript(sourceRootPath: sourceRootPath))
             pbxproj.add(object: buildPhase)

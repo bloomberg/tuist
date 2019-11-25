@@ -103,9 +103,7 @@ final class ProjectGenerator: ProjectGenerating {
                                               groups: groups,
                                               pbxproj: pbxproj,
                                               sourceRootPath: sourceRootPath)
-        let configurationList = try configGenerator.generateProjectConfig(project: project,
-                                                                          pbxproj: pbxproj,
-                                                                          fileElements: fileElements)
+        let configurationList = try configGenerator.generateProjectConfig(project: project, pbxproj: pbxproj, fileElements: fileElements)
         let pbxProject = try generatePbxproject(project: project,
                                                 configurationList: configurationList,
                                                 groups: groups,
