@@ -243,9 +243,16 @@ final class WorkspaceSchemesGenerator: WorkspaceSchemesGenerating {
                             rootPath: AbsolutePath,
                             generatedProjects: [AbsolutePath: GeneratedProject]) throws -> XCScheme.LaunchAction? {
         
-        guard let executable = scheme.runAction?.executable,
-            let (targetNode, generatedProject) = try lookupTarget(reference: executable, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath) else {
+        guard let firstBuildAction = scheme.buildAction?.targets.first else { return nil }
+        
+        guard var (targetNode, generatedProject) = try lookupTarget(reference: firstBuildAction, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath) else { return nil }
+        
+        if let executable = scheme.runAction?.executable {
+            guard let (runnableTargetNode, runnableTargetGeneratedProject) = try lookupTarget(reference: executable, graph: graph, generatedProjects: generatedProjects, rootPath: rootPath) else {
                 return nil
+            }
+            targetNode = runnableTargetNode
+            generatedProject = runnableTargetGeneratedProject
         }
         
         guard let pbxTarget = generatedProject.targets[targetNode.target.name] else { return nil }

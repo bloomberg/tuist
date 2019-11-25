@@ -71,9 +71,9 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         let projectA = Project.test(path: projectAPath)
         let projectB = Project.test(path: projectBPath)
         let graph = Graph.create(dependencies: [
-                                                (project: projectA, target: frameworkA, dependencies: []),
-                                                (project: projectB, target: frameworkB, dependencies: [])
-                                                ])
+            (project: projectA, target: frameworkA, dependencies: []),
+            (project: projectB, target: frameworkB, dependencies: [])
+        ])
         
         // Then
         let got = try subject.schemeBuildAction(scheme: scheme,
@@ -108,6 +108,48 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
 
         XCTAssertEqual(result.parallelizeBuild, true)
         XCTAssertEqual(result.buildImplicitDependencies, true)
+    }
+    
+    func test_schemeBuildAction_with_executionAction() throws {
+        // Given
+        let projectPath = AbsolutePath("/somepath/Project")
+        let target = Target.test(name: "App", product: .app)
+        let preAction = ExecutionAction(title: "Pre Action", scriptText: "echo Pre Actions", target: TargetReference(projectPath: projectPath, name: "App"))
+        let postAction = ExecutionAction(title: "Post Action", scriptText: "echo Post Actions", target: TargetReference(projectPath: projectPath, name: "App"))
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")], preActions: [preAction], postActions: [postAction])
+
+        let scheme = Scheme.test(name: "App", shared: true, buildAction: buildAction)
+        let project = Project.test(path: projectPath, targets: [target])
+        let graph = Graph.create(dependencies: [
+            (project: project, target: target, dependencies: [])
+        ])
+
+        // When
+        let got = try subject.schemeBuildAction(scheme: scheme,
+                                                graph: graph,
+                                                rootPath: projectPath,
+                                                generatedProjects: createGeneratedProjects(projects: [project]))
+
+        // Then
+        XCTAssertEqual(got?.preActions.first?.title, "Pre Action")
+        XCTAssertEqual(got?.preActions.first?.scriptText, "echo Pre Actions")
+
+        let preBuildableReference = got?.preActions.first?.environmentBuildable
+
+        XCTAssertEqual(preBuildableReference?.referencedContainer, "container:project.xcodeproj")
+        XCTAssertEqual(preBuildableReference?.buildableName, "App.app")
+        XCTAssertEqual(preBuildableReference?.blueprintName, "App")
+        XCTAssertEqual(preBuildableReference?.buildableIdentifier, "primary")
+
+        XCTAssertEqual(got?.postActions.first?.title, "Post Action")
+        XCTAssertEqual(got?.postActions.first?.scriptText, "echo Post Actions")
+
+        let postBuildableReference = got?.postActions.first?.environmentBuildable
+
+        XCTAssertEqual(postBuildableReference?.referencedContainer, "container:project.xcodeproj")
+        XCTAssertEqual(postBuildableReference?.buildableName, "App.app")
+        XCTAssertEqual(postBuildableReference?.blueprintName, "App")
+        XCTAssertEqual(postBuildableReference?.buildableIdentifier, "primary")
     }
     
     // MARK: - Test Action Tests
@@ -304,6 +346,35 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         XCTAssertEqual(buildableReference.buildableName, "App.app")
         XCTAssertEqual(buildableReference.blueprintName, "App")
         XCTAssertEqual(buildableReference.buildableIdentifier, "primary")
+    }
+    
+    func test_schemeLaunchAction_when_notRunnableTarget() throws {
+        // Given
+        let projectPath = AbsolutePath("/somepath/Project")
+        
+        let target = Target.test(name: "Library", platform: .iOS, product: .dynamicLibrary)
+
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+        let testAction = TestAction.test(targets: [TargetReference(projectPath: projectPath, name: "Library")])
+
+        let scheme = Scheme.test(name: "Library", buildAction: buildAction, testAction: testAction, runAction: nil)
+        let project = Project.test(path: projectPath, targets: [target])
+        let graph = Graph.create(dependencies: [(project: project, target: target, dependencies: [])])
+
+        // When
+        let got = try subject.schemeLaunchAction(scheme: scheme,
+                                                 graph: graph,
+                                                 rootPath: projectPath,
+                                                 generatedProjects: createGeneratedProjects(projects: [project]))
+
+        // Then
+        XCTAssertNil(got?.runnable?.buildableReference)
+
+        XCTAssertEqual(got?.buildConfiguration, "Debug")
+        XCTAssertEqual(got?.macroExpansion?.referencedContainer, "container:Project.xcodeproj")
+        XCTAssertEqual(got?.macroExpansion?.buildableName, "libLibrary.dylib")
+        XCTAssertEqual(got?.macroExpansion?.blueprintName, "Library")
+        XCTAssertEqual(got?.macroExpansion?.buildableIdentifier, "primary")
     }
     
     private func createGeneratedProjects(projects: [Project]) -> [AbsolutePath: GeneratedProject] {
