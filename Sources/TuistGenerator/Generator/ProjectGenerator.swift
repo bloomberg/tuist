@@ -38,7 +38,7 @@ final class ProjectGenerator: ProjectGenerating {
     let configGenerator: ConfigGenerating
 
     /// Generator for the project schemes.
-    let schemesGenerator: WorkspaceSchemesGenerator
+    let schemesGenerator: SchemesGenerator
 
     /// Generator for the project derived files.
     let derivedFileGenerator: DerivedFileGenerating
@@ -54,7 +54,7 @@ final class ProjectGenerator: ProjectGenerating {
     ///   - derivedFileGenerator: Generator for the project derived files.
     init(targetGenerator: TargetGenerating = TargetGenerator(),
          configGenerator: ConfigGenerating = ConfigGenerator(),
-         schemesGenerator: WorkspaceSchemesGenerator = WorkspaceSchemesGenerator(),
+         schemesGenerator: SchemesGenerator = SchemesGenerator(),
          derivedFileGenerator: DerivedFileGenerating = DerivedFileGenerator()) {
         self.targetGenerator = targetGenerator
         self.configGenerator = configGenerator

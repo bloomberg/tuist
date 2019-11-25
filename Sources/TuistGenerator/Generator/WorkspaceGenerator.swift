@@ -44,7 +44,7 @@ final class WorkspaceGenerator: WorkspaceGenerating {
     private let projectGenerator: ProjectGenerating
     private let workspaceStructureGenerator: WorkspaceStructureGenerating
     private let cocoapodsInteractor: CocoaPodsInteracting
-    private let schemesGenerator: WorkspaceSchemesGenerating
+    private let schemesGenerator: SchemesGenerating
 
     // MARK: - Init
 
@@ -57,13 +57,13 @@ final class WorkspaceGenerator: WorkspaceGenerating {
         self.init(projectGenerator: projectGenerator,
                   workspaceStructureGenerator: WorkspaceStructureGenerator(),
                   cocoapodsInteractor: cocoapodsInteractor,
-                  schemesGenerator: WorkspaceSchemesGenerator())
+                  schemesGenerator: SchemesGenerator())
     }
 
     init(projectGenerator: ProjectGenerating,
          workspaceStructureGenerator: WorkspaceStructureGenerating,
          cocoapodsInteractor: CocoaPodsInteracting,
-         schemesGenerator: WorkspaceSchemesGenerating) {
+         schemesGenerator: SchemesGenerating) {
         self.projectGenerator = projectGenerator
         self.workspaceStructureGenerator = workspaceStructureGenerator
         self.cocoapodsInteractor = cocoapodsInteractor
