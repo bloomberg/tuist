@@ -321,18 +321,22 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
         // Given
         let projectPath = AbsolutePath("/somepath/Workspace/Projects/Project")
 
-        let scheme = Scheme.test(runAction: RunAction(configurationName: "Release", executable: TargetReference(projectPath: projectPath, name: "App"), arguments: Arguments(environment:["a": "b"], launch: ["some": true])))
-                
+        let buildAction = BuildAction.test(targets: [TargetReference(projectPath: projectPath, name: "App")])
+        let runAction = RunAction.test(configurationName: "Release",
+                                       executable: TargetReference(projectPath: projectPath, name: "App"),
+                                       arguments: Arguments(environment:["a": "b"], launch: ["some": true]))
+        let scheme = Scheme.test(buildAction: buildAction, runAction: runAction)
+        
         let app = Target.test(name: "App", product: .app, environment: ["a": "b"])
-        let pbxTarget = PBXNativeTarget(name: "App")
-               
-        let project = Project.test(path: projectPath)
+        
+        let project = Project.test(path: projectPath, targets: [app])
         let graph = Graph.create(dependencies: [(project: project, target: app, dependencies: [])])
         
-        let generatedProject = GeneratedProject.test(path: AbsolutePath("\(projectPath)/project.xcodeproj"), targets: ["App": pbxTarget])
-        
         // When
-        let got = try subject.schemeLaunchAction(scheme: scheme, graph: graph, rootPath: AbsolutePath("/somepath/Workspace"), generatedProjects: [projectPath: generatedProject])
+        let got = try subject.schemeLaunchAction(scheme: scheme,
+                                                 graph: graph,
+                                                 rootPath: AbsolutePath("/somepath/Workspace"),
+                                                 generatedProjects: createGeneratedProjects(projects: [project]))
         
         // Then
         let result = try XCTUnwrap(got)
@@ -343,7 +347,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
 
         XCTAssertEqual(result.buildConfiguration, "Release")
         XCTAssertEqual(result.environmentVariables, [XCScheme.EnvironmentVariable(variable: "a", value: "b", enabled: true)])
-        XCTAssertEqual(buildableReference.referencedContainer, "container:Projects/Project/project.xcodeproj")
+        XCTAssertEqual(buildableReference.referencedContainer, "container:Projects/Project/Project.xcodeproj")
         XCTAssertEqual(buildableReference.buildableName, "App.app")
         XCTAssertEqual(buildableReference.blueprintName, "App")
         XCTAssertEqual(buildableReference.buildableIdentifier, "primary")
