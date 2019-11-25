@@ -114,11 +114,11 @@ final class WorkspaceGenerator: WorkspaceGenerating {
                                       path: path)
         }
 
-//        try write(xcworkspace: xcworkspace,
-//                  to: xcworkspacePath,
-//                  workspace: workspace,
-//                  graph: graph,
-//                  generatedProjects: generatedProjects)
+        try write(workspace: workspace,
+                  graph: graph,
+                  xcworkspace: xcworkspace,
+                  generatedProjects: generatedProjects,
+                  to: xcworkspacePath)
         
         try writeXCWorkspace(workspace: workspace, graph: graph, xcworkspace: xcworkspace, generatedProjects: generatedProjects, to: xcworkspacePath)
         
@@ -191,39 +191,37 @@ final class WorkspaceGenerator: WorkspaceGenerating {
         }
     }
 
-//    private func write(workspace: Workspace,
-//                       graph: Graphing,
-//                       xcworkspace: XCWorkspace,
-//                       generatedProjects: [AbsolutePath: GeneratedProject],
-//                       to: AbsolutePath) throws {
-//        // If the workspace doesn't exist we can write it because there isn't any
-//        // Xcode instance that might depend on it.
-//        if !FileHandler.shared.exists(to.appending(component: "contents.xcworkspacedata")) {
-//            try xcworkspace.write(path: to.path)
-//            return
-//        }
-//
-//        // If the workspace exists, we want to reduce the likeliness of causing
-//        // Xcode not to be able to reload the workspace.
-//        // We only replace the current one if something has changed.
-//        try FileHandler.shared.inTemporaryDirectory { temporaryPath in
-//            try xcworkspace.write(path: temporaryPath.path)
-//
-//            let workspaceData: (AbsolutePath) throws -> Data = {
-//                let dataPath = $0.appending(component: "contents.xcworkspacedata")
-//                return try Data(contentsOf: dataPath.url)
-//            }
-//
-//            let currentData = try workspaceData(to)
-//            let currentWorkspaceData = try workspaceData(temporaryPath)
-//
-//            if currentData != currentWorkspaceData {
-//                try FileHandler.shared.replace(to, with: temporaryPath)
-//            }
-//
-//
-//        }
-//    }
+    private func write(workspace: Workspace,
+                       graph: Graphing,
+                       xcworkspace: XCWorkspace,
+                       generatedProjects: [AbsolutePath: GeneratedProject],
+                       to: AbsolutePath) throws {
+        // If the workspace doesn't exist we can write it because there isn't any
+        // Xcode instance that might depend on it.
+        if !FileHandler.shared.exists(to.appending(component: "contents.xcworkspacedata")) {
+            try xcworkspace.write(path: to.path)
+            return
+        }
+
+        // If the workspace exists, we want to reduce the likeliness of causing
+        // Xcode not to be able to reload the workspace.
+        // We only replace the current one if something has changed.
+        try FileHandler.shared.inTemporaryDirectory { temporaryPath in
+            try xcworkspace.write(path: temporaryPath.path)
+
+            let workspaceData: (AbsolutePath) throws -> Data = {
+                let dataPath = $0.appending(component: "contents.xcworkspacedata")
+                return try Data(contentsOf: dataPath.url)
+            }
+
+            let currentData = try workspaceData(to)
+            let currentWorkspaceData = try workspaceData(temporaryPath)
+
+            if currentData != currentWorkspaceData {
+                try FileHandler.shared.replace(to, with: temporaryPath)
+            }
+        }
+    }
     
     func writeXCWorkspace(workspace: Workspace,
                           graph: Graphing,
