@@ -417,6 +417,8 @@ extension TuistCore.DefaultSettings {
             return .recommended
         case .essential:
             return .essential
+        case .none:
+            return .none
         }
     }
 }

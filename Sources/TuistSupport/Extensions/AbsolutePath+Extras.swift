@@ -55,6 +55,11 @@ extension AbsolutePath {
         }
         return ancestorPath
     }
+
+    /// Returns the hash of the file the path points to.
+    public func sha256() -> Data? {
+        return try? SHA256Digest.file(at: url)
+    }
 }
 
 extension AbsolutePath: ExpressibleByStringLiteral {
