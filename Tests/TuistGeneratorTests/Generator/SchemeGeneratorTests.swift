@@ -136,7 +136,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
 
         let preBuildableReference = got?.preActions.first?.environmentBuildable
 
-        XCTAssertEqual(preBuildableReference?.referencedContainer, "container:project.xcodeproj")
+        XCTAssertEqual(preBuildableReference?.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(preBuildableReference?.buildableName, "App.app")
         XCTAssertEqual(preBuildableReference?.blueprintName, "App")
         XCTAssertEqual(preBuildableReference?.buildableIdentifier, "primary")
@@ -146,7 +146,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
 
         let postBuildableReference = got?.postActions.first?.environmentBuildable
 
-        XCTAssertEqual(postBuildableReference?.referencedContainer, "container:project.xcodeproj")
+        XCTAssertEqual(postBuildableReference?.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(postBuildableReference?.buildableName, "App.app")
         XCTAssertEqual(postBuildableReference?.blueprintName, "App")
         XCTAssertEqual(postBuildableReference?.buildableIdentifier, "primary")
@@ -267,7 +267,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
 
         let preBuildableReference = try XCTUnwrap(result.preActions.first?.environmentBuildable)
 
-        XCTAssertEqual(preBuildableReference.referencedContainer, "container:project.xcodeproj")
+        XCTAssertEqual(preBuildableReference.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(preBuildableReference.buildableName, "AppTests.xctest")
         XCTAssertEqual(preBuildableReference.blueprintName, "AppTests")
         XCTAssertEqual(preBuildableReference.buildableIdentifier, "primary")
@@ -278,7 +278,7 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
 
         let postBuildableReference = try XCTUnwrap(result.postActions.first?.environmentBuildable)
 
-        XCTAssertEqual(postBuildableReference.referencedContainer, "container:project.xcodeproj")
+        XCTAssertEqual(postBuildableReference.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(postBuildableReference.buildableName, "AppTests.xctest")
         XCTAssertEqual(postBuildableReference.blueprintName, "AppTests")
         XCTAssertEqual(postBuildableReference.buildableIdentifier, "primary")
@@ -474,12 +474,16 @@ final class WorkspaceSchemeGeneratorTests: XCTestCase {
     }
     
     private func createGeneratedProjects(projects: [Project]) -> [AbsolutePath: GeneratedProject] {
-        return Dictionary(uniqueKeysWithValues: projects.map { ($0.path, generatedProject(targets: $0.targets, projectPath: $0.path.appending(component: "\($0.name).xcodeproj").pathString)) })
+        return Dictionary(uniqueKeysWithValues: projects.map {
+            ($0.path, generatedProject(targets: $0.targets,
+                                       projectPath: $0.path.appending(component: "\($0.name).xcodeproj").pathString))
+        })
     }
     
-    private func generatedProject(targets: [Target], projectPath: String = "/project.xcodeproj") -> GeneratedProject {
+    private func generatedProject(targets: [Target], projectPath: String = "/Project.xcodeproj") -> GeneratedProject {
         var pbxTargets: [String: PBXNativeTarget] = [:]
         targets.forEach { pbxTargets[$0.name] = PBXNativeTarget(name: $0.name) }
-        return GeneratedProject(pbxproj: .init(), path: AbsolutePath(projectPath), targets: pbxTargets, name: "project.xcodeproj")
+        let path = AbsolutePath(projectPath)
+        return GeneratedProject(pbxproj: .init(), path: path, targets: pbxTargets, name: path.basename)
     }
 }

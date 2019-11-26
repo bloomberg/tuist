@@ -257,16 +257,16 @@ final class ProjectGenerator: ProjectGenerating {
 
             try writeXcodeproj(workspace: workspace,
                                pbxproj: pbxproj,
-                               xcodeprojPath: xcodeprojPath)
+                               xcodeprojPath: temporaryPath)
             generatedProject = GeneratedProject(pbxproj: pbxproj,
                                                 path: temporaryPath,
                                                 targets: nativeTargets,
-                                                name: xcodeprojPath.components.last!)
+                                                name: xcodeprojPath.basename)
             try writeSchemes(project: project,
                              generatedProject: generatedProject,
-                             xcprojectPath: xcodeprojPath,
+                             xcprojectPath: temporaryPath,
                              graph: graph)
-            try FileHandler.shared.replace(project.path, with: temporaryPath)
+            try FileHandler.shared.replace(xcodeprojPath, with: temporaryPath)
         }
 
         return try generatedProject.at(path: xcodeprojPath)

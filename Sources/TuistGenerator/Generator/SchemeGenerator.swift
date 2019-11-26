@@ -150,7 +150,8 @@ final class SchemesGenerator: SchemesGenerating {
                                                 name: buildActionTarget.name) else { return }
             guard let generatedProject = generatedProjects[pathToProject] else { return }
             guard let pbxTarget = generatedProject.targets[buildActionTarget.name] else { return }
-            let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+            let xcodeProjectPath = buildActionTarget.projectPath.appending(component: generatedProject.name)
+            let relativeXcodeProjectPath = xcodeProjectPath.relative(to: rootPath)
             let buildableReference = targetBuildableReference(target: target.target,
                                                               pbxTarget: pbxTarget,
                                                               projectPath: relativeXcodeProjectPath.pathString)
@@ -189,7 +190,8 @@ final class SchemesGenerator: SchemesGenerating {
             guard let target = try graph.target(path: pathToProject, name: testActionTarget.name) else { return }
             guard let generatedProject = generatedProjects[pathToProject] else { return }
             guard let pbxTarget = generatedProject.targets[testActionTarget.name] else { return }
-            let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+            let xcodeProjectPath = testActionTarget.projectPath.appending(component: generatedProject.name)
+            let relativeXcodeProjectPath = xcodeProjectPath.relative(to: rootPath)
             
             let reference = targetBuildableReference(target: target.target,
                                                      pbxTarget: pbxTarget,
@@ -267,7 +269,8 @@ final class SchemesGenerator: SchemesGenerating {
 
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
-        let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+        let xcodeProjectPath = targetNode.path.appending(component: generatedProject.name)
+        let relativeXcodeProjectPath = xcodeProjectPath.relative(to: rootPath)
         let buildableReference = targetBuildableReference(target: targetNode.target,
                                                           pbxTarget: pbxTarget,
                                                           projectPath: relativeXcodeProjectPath.pathString)
@@ -318,7 +321,8 @@ final class SchemesGenerator: SchemesGenerating {
 
         var buildableProductRunnable: XCScheme.BuildableProductRunnable?
         var macroExpansion: XCScheme.BuildableReference?
-        let relativeXcodeProjectPath = generatedProject.path.relative(to: rootPath)
+        let xcodeProjectPath = targetNode.path.appending(component: generatedProject.name)
+        let relativeXcodeProjectPath = xcodeProjectPath.relative(to: rootPath)
         let buildableReference = targetBuildableReference(target: targetNode.target,
                                                           pbxTarget: pbxTarget,
                                                           projectPath: relativeXcodeProjectPath.pathString)
