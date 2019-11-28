@@ -8,17 +8,20 @@ public struct WorkspaceDescription {
         public let buildAction: BuildAction?
         public let testAction: TestAction?
         public let runAction: RunAction?
+        public let archiveAction: ArchiveAction?
 
         public init(name: String,
                     shared: Bool = true,
                     buildAction: BuildAction? = nil,
                     testAction: TestAction? = nil,
-                    runAction: RunAction? = nil) {
+                    runAction: RunAction? = nil,
+                    archiveAction: ArchiveAction? = nil) {
             self.name = name
             self.shared = shared
             self.buildAction = buildAction
             self.testAction = testAction
             self.runAction = runAction
+            self.archiveAction = archiveAction
         }
     }
 
@@ -141,6 +144,30 @@ public struct WorkspaceDescription {
             self.init(configurationName: config.name,
                       executable: executable,
                       arguments: arguments)
+        }
+    }
+    
+    // MARK: - ArchiveAction
+    
+    public struct ArchiveAction: Equatable, Codable {
+        public let configurationName: String
+        public let revealArchiveInOrganizer: Bool
+        public let customArchiveName: String?
+        public let preActions: [ExecutionAction]
+        public let postActions: [ExecutionAction]
+
+        public init(
+            configurationName: String,
+            revealArchiveInOrganizer: Bool = true,
+            customArchiveName: String? = nil,
+            preActions: [ExecutionAction] = [],
+            postActions: [ExecutionAction] = []
+        ) {
+            self.configurationName = configurationName
+            self.revealArchiveInOrganizer = revealArchiveInOrganizer
+            self.customArchiveName = customArchiveName
+            self.preActions = preActions
+            self.postActions = postActions
         }
     }
 }

@@ -24,15 +24,12 @@ enum GeneratorModelLoaderError: Error, Equatable, FatalError {
 
 class GeneratorModelLoader: GeneratorModelLoading {
     private let manifestLoader: GraphManifestLoading
-    private let manifestTargetGenerator: ManifestTargetGenerating?
     private let manifestLinter: ManifestLinting
 
     init(manifestLoader: GraphManifestLoading,
-         manifestLinter: ManifestLinting,
-         manifestTargetGenerator: ManifestTargetGenerating? = nil) {
+         manifestLinter: ManifestLinting) {
         self.manifestLoader = manifestLoader
         self.manifestLinter = manifestLinter
-        self.manifestTargetGenerator = manifestTargetGenerator
     }
 
     /// Load a Project model at the specified path
@@ -79,13 +76,6 @@ class GeneratorModelLoader: GeneratorModelLoading {
                           with config: TuistCore.TuistConfig) throws -> TuistCore.Project {
         var enrichedModel = model
 
-        // Manifest target
-        if let manifestTargetGenerator = manifestTargetGenerator, config.generationOptions.contains(.generateManifest) {
-            let manifestTarget = try manifestTargetGenerator.generateManifestTarget(for: enrichedModel.name,
-                                                                                    at: enrichedModel.path)
-            enrichedModel = enrichedModel.adding(target: manifestTarget)
-        }
-
         // Xcode project file name
         let xcodeFileName = xcodeFileNameOverride(from: config, for: model)
         enrichedModel = enrichedModel.replacing(fileName: xcodeFileName)
@@ -127,8 +117,6 @@ extension TuistCore.TuistConfig.GenerationOption {
     static func from(manifest: ProjectDescription.TuistConfig.GenerationOptions,
                      path _: AbsolutePath) throws -> TuistCore.TuistConfig.GenerationOption {
         switch manifest {
-        case .generateManifest:
-            return .generateManifest
         case let .xcodeProjectName(templateString):
             return .xcodeProjectName(templateString.description)
         }
@@ -590,12 +578,14 @@ extension TuistCore.Scheme {
         let buildAction = manifest.buildAction.map { TuistCore.BuildAction.from(manifest: $0, projectPath: projectPath) }
         let testAction = manifest.testAction.map { TuistCore.TestAction.from(manifest: $0, projectPath: projectPath) }
         let runAction = manifest.runAction.map { TuistCore.RunAction.from(manifest: $0, projectPath: projectPath) }
+        let archiveAction = manifest.archiveAction.map { TuistCore.ArchiveAction.from(manifest: $0, projectPath: projectPath) }
 
         return Scheme(name: name,
                       shared: shared,
                       buildAction: buildAction,
                       testAction: testAction,
-                      runAction: runAction)
+                      runAction: runAction,
+                      archiveAction: archiveAction)
     }
     
     static func from(manifest: WorkspaceDescription.Scheme, workspacePath: AbsolutePath) -> TuistCore.Scheme {
@@ -604,12 +594,14 @@ extension TuistCore.Scheme {
         let buildAction = manifest.buildAction.map { TuistCore.BuildAction.from(manifest: $0, workspacePath: workspacePath) }
         let testAction = manifest.testAction.map { TuistCore.TestAction.from(manifest: $0, workspacePath: workspacePath) }
         let runAction = manifest.runAction.map { TuistCore.RunAction.from(manifest: $0, workspacePath: workspacePath) }
+        let archiveAction = manifest.archiveAction.map { TuistCore.ArchiveAction.from(manifest: $0, workspacePath: workspacePath) }
 
         return Scheme(name: name,
                       shared: shared,
                       buildAction: buildAction,
                       testAction: testAction,
-                      runAction: runAction)
+                      runAction: runAction,
+                      archiveAction: archiveAction)
     }
 }
 
@@ -700,6 +692,36 @@ extension TuistCore.RunAction {
         return RunAction(configurationName: configurationName,
                          executable: executableResolved,
                          arguments: arguments)
+    }
+}
+
+extension TuistCore.ArchiveAction {
+    static func from(manifest: ProjectDescription.ArchiveAction, projectPath: AbsolutePath) -> TuistCore.ArchiveAction {
+        let configurationName = manifest.configurationName
+        let revealArchiveInOrganizer = manifest.revealArchiveInOrganizer
+        let customArchiveName = manifest.customArchiveName
+        let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
+        let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0, projectPath: projectPath) }
+
+        return TuistCore.ArchiveAction(configurationName: configurationName,
+                                       revealArchiveInOrganizer: revealArchiveInOrganizer,
+                                       customArchiveName: customArchiveName,
+                                       preActions: preActions,
+                                       postActions: postActions)
+    }
+    
+    static func from(manifest: WorkspaceDescription.ArchiveAction, workspacePath: AbsolutePath) -> TuistCore.ArchiveAction {
+        let configurationName = manifest.configurationName
+        let revealArchiveInOrganizer = manifest.revealArchiveInOrganizer
+        let customArchiveName = manifest.customArchiveName
+        let preActions = manifest.preActions.map { TuistCore.ExecutionAction.from(manifest: $0, workspacePath: workspacePath) }
+        let postActions = manifest.postActions.map { TuistCore.ExecutionAction.from(manifest: $0, workspacePath: workspacePath) }
+
+        return TuistCore.ArchiveAction(configurationName: configurationName,
+                                       revealArchiveInOrganizer: revealArchiveInOrganizer,
+                                       customArchiveName: customArchiveName,
+                                       preActions: preActions,
+                                       postActions: postActions)
     }
 }
 

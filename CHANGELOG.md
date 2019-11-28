@@ -4,11 +4,16 @@ Please, check out guidelines: https://keepachangelog.com/en/1.0.0/
 
 ## Next
 
+### Removed
+- **Breaking** Generate manifests target as part of the generated project https://github.com/tuist/tuist/pull/724 by @pepibumur.
+
 ### Added
 
 - Add `ProjectDescription.Settings.defaultSettings` none case that don't override any `Project` or `Target` settings. https://github.com/tuist/tuist/pull/698 by @rowwingman.
 - `ProjectEditor` utility https://github.com/tuist/tuist/pull/702 by @pepibumur.
 - Fix warnings in the project, refactor SHA256 diegest code https://github.com/tuist/tuist/pull/704 by @rowwingman.
+- Define `ArchiveAction` on `Scheme` https://github.com/tuist/tuist/pull/697 by @grsouza.
+- `tuist edit` command https://github.com/tuist/tuist/pull/703 by @pepibumur.
 
 ## 0.19.0
 
