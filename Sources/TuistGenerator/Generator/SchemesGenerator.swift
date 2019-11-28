@@ -55,6 +55,13 @@ final class SchemesGenerator: SchemesGenerating {
         }
     }
     
+    
+    /// Generate schemes for a project.
+    /// - Parameters:
+    ///     - project: Project manifest.
+    ///     - xcprojectPath: Path to project's .xcodeproj.
+    ///     - generatedProject: Generated Project
+    ///     - graph: Tuist graph.
     func generateProjectSchemes(project: Project,
                                 xcprojectPath: AbsolutePath,
                                 generatedProject: GeneratedProject,
@@ -88,6 +95,13 @@ final class SchemesGenerator: SchemesGenerating {
         }
     }
     
+    /// Generate schemes for a project or workspace.
+    /// - Parameters:
+    ///     - scheme: Project scheme.
+    ///     - xcworkspacePath: Path to workspace's .xcworkspace.
+    ///     - workspacePath: Path to workspace folder.
+    ///     - graph: Tuist graph.
+    ///     - generatedProjects: Project paths mapped to generated projects.
     private func generateScheme(scheme: Scheme,
                                 xcworkspacePath: AbsolutePath,
                                 workspacePath: AbsolutePath,
@@ -139,9 +153,9 @@ final class SchemesGenerator: SchemesGenerating {
     ///
     /// - Parameters:
     ///   - scheme: Scheme manifest.
-    ///   - graph: Graph of tuist dependencies.
-    ///   - rootPath: Path to the workspace.
-    ///   - generatedProjects: Generated Xcode project.
+    ///   - graph: Tuist graph.
+    ///   - rootPath: Path to the project or workspace.
+    ///   - generatedProjects: Project paths mapped to generated projects.
     /// - Returns: Scheme build action.
     func schemeBuildAction(scheme: Scheme,
                            graph: Graphing,
@@ -217,9 +231,11 @@ final class SchemesGenerator: SchemesGenerating {
     }
 
     /// Generates the scheme archive action.
-    /// - Parameter scheme: Scheme manifest.
-    /// - Parameter project: Project manifest.
-    /// - Parameter generatedProject: Generated Xcode project.
+    /// - Parameters:
+    ///     - scheme: Scheme manifest.
+    ///     - graph: Tuist graph.
+    ///     - rootPath: Root path to either project or workspace.
+    ///     - generatedProjects: Project paths mapped to generated projects.
     /// - Returns: Scheme archive action.
     func schemeArchiveAction(scheme: Scheme,
                              graph: Graphing,
@@ -254,8 +270,9 @@ final class SchemesGenerator: SchemesGenerating {
     ///
     /// - Parameters:
     ///   - scheme: Scheme manifest.
-    ///   - project: Project manifest.
-    ///   - generatedProject: Generated Xcode project.
+    ///   - graph: Tuist graph.
+    ///   - rootPath: Root path to either project or workspace.
+    ///   - generatedProjects: Project paths mapped to generated projects.
     /// - Returns: Scheme test action.
     func schemeTestAction(scheme: Scheme,
                           graph: Graphing,
@@ -324,6 +341,14 @@ final class SchemesGenerator: SchemesGenerating {
                                    environmentVariables: environments)
     }
     
+    /// Generates the scheme launch action.
+    ///
+    /// - Parameters:
+    ///   - scheme: Scheme manifest.
+    ///   - graph: Tuist graph.
+    ///   - rootPath: Root path to either project or workspace.
+    ///   - generatedProjects: Project paths mapped to generated projects.
+    /// - Returns: Scheme launch action.
     func schemeLaunchAction(scheme: Scheme,
                             graph: Graphing,
                             rootPath: AbsolutePath,
@@ -376,6 +401,15 @@ final class SchemesGenerator: SchemesGenerating {
                                      environmentVariables: environments)
     }
     
+    
+    /// Generates the scheme profile action for a given target.
+    ///
+    /// - Parameters:
+    ///   - scheme: Target manifest.
+    ///   - graph: Tuist graph.
+    ///   - rootPath: Root path to either project or workspace.
+    ///   - generatedProjects: Project paths mapped to generated projects.
+    /// - Returns: Scheme profile action.
     func schemeProfileAction(scheme: Scheme,
                              graph: Graphing,
                              rootPath: AbsolutePath,
