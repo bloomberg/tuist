@@ -21,6 +21,12 @@ public class GeneratorModelLoader: GeneratorModelLoading {
     /// - Returns: The Project loaded from the specified path
     /// - Throws: Error encountered during the loading process (e.g. Missing project)
     public func loadProject(at path: AbsolutePath) throws -> TuistCore.Project {
+        let signpost = Signpost(category: "ModelLoader", identifier: "loadProject", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let manifest = try manifestLoader.loadProject(at: path)
         let tuistConfig = try loadTuistConfig(at: path)
         let generatorPaths = GeneratorPaths(manifestDirectory: path)
@@ -30,6 +36,12 @@ public class GeneratorModelLoader: GeneratorModelLoading {
     }
 
     public func loadWorkspace(at path: AbsolutePath) throws -> TuistCore.Workspace {
+        let signpost = Signpost(category: "ModelLoader", identifier: "loadWorkspace", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let manifest = try manifestLoader.loadWorkspace(at: path)
         let generatorPaths = GeneratorPaths(manifestDirectory: path)
         let workspace = try TuistCore.Workspace.from(manifest: manifest,
@@ -40,6 +52,12 @@ public class GeneratorModelLoader: GeneratorModelLoading {
     }
 
     public func loadTuistConfig(at path: AbsolutePath) throws -> TuistCore.TuistConfig {
+        let signpost = Signpost(category: "ModelLoader", identifier: "loadTuistConfig", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         guard let tuistConfigPath = FileHandler.shared.locateDirectoryTraversingParents(from: path, path: Manifest.tuistConfig.fileName) else {
             return TuistCore.TuistConfig.default
         }

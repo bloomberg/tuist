@@ -134,6 +134,12 @@ public class ManifestLoader: ManifestLoading {
     // MARK: - Private
 
     private func loadManifest<T: Decodable>(_ manifest: Manifest, at path: AbsolutePath) throws -> T {
+        let signpost = Signpost(category: "ManifestLoader", identifier: "loadManifest", label: "\(path.basename) (\(manifest.fileName))")
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let manifestPath = path.appending(component: manifest.fileName)
         guard FileHandler.shared.exists(manifestPath) else {
             throw ManifestLoaderError.manifestNotFound(manifest, path)

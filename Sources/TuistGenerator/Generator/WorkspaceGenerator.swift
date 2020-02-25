@@ -86,6 +86,12 @@ final class WorkspaceGenerator: WorkspaceGenerating {
                   path: AbsolutePath,
                   graph: Graphing,
                   tuistConfig _: TuistConfig) throws -> AbsolutePath {
+        let signpost = Signpost(category: "WorkspaceGenerator", identifier: "generate", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let workspaceName = "\(graph.name).xcworkspace"
 
         Printer.shared.print(section: "Generating workspace \(workspaceName)")
@@ -122,7 +128,6 @@ final class WorkspaceGenerator: WorkspaceGenerating {
                   to: workspacePath)
 
         // Schemes
-
         try writeSchemes(workspace: workspace,
                          xcworkspace: xcWorkspace,
                          generatedProjects: generatedProjects,
@@ -130,15 +135,17 @@ final class WorkspaceGenerator: WorkspaceGenerating {
                          to: workspacePath)
 
         // SPM
-
-        try generatePackageDependencyManager(at: path,
-                                             workspace: workspace,
-                                             workspaceName: workspaceName,
-                                             graph: graph)
+        try Signpost.measure(category: "WorkspaceGenerator", identifier: "resolvePackageSwift") {
+            try generatePackageDependencyManager(at: path,
+                                                 workspace: workspace,
+                                                 workspaceName: workspaceName,
+                                                 graph: graph)
+        }
 
         // CocoaPods
-
-        try cocoapodsInteractor.install(graph: graph)
+        try Signpost.measure(category: "WorkspaceGenerator", identifier: "podInstall") {
+            try cocoapodsInteractor.install(graph: graph)
+        }
 
         return workspacePath
     }

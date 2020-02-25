@@ -76,6 +76,12 @@ final class ProjectGenerator: ProjectGenerating {
                   graph: Graphing,
                   sourceRootPath: AbsolutePath? = nil,
                   xcodeprojPath: AbsolutePath? = nil) throws -> GeneratedProject {
+        let signpost = Signpost(category: "ProjectGenerator", identifier: "generate", label: project.name)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         Printer.shared.print("Generating project \(project.name)")
 
         // Getting the path.

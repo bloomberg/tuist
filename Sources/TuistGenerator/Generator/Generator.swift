@@ -115,6 +115,12 @@ public class Generator: Generating {
     }
 
     public func generateProject(at path: AbsolutePath) throws -> AbsolutePath {
+        let signpost = Signpost(category: "Generator", identifier: "generateProject", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let tuistConfig = try graphLoader.loadTuistConfig(path: path)
         try environmentLinter.lint(config: tuistConfig)
 
@@ -130,11 +136,22 @@ public class Generator: Generating {
 
     public func generateProjectWorkspace(at path: AbsolutePath,
                                          workspaceFiles: [AbsolutePath]) throws -> AbsolutePath {
+        let signpost = Signpost(category: "Generator", identifier: "generateProjectWorkspace", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let tuistConfig = try graphLoader.loadTuistConfig(path: path)
         try environmentLinter.lint(config: tuistConfig)
 
-        let (graph, project) = try graphLoader.loadProject(path: path)
-        try graphLinter.lint(graph: graph).printAndThrowIfNeeded()
+        let (graph, project) = try Signpost.measure(category: "Generator", identifier: "loadGraph") {
+            try graphLoader.loadProject(path: path)
+        }
+
+        try Signpost.measure(category: "Generator", identifier: "lintGraph") {
+            try graphLinter.lint(graph: graph).printAndThrowIfNeeded()
+        }
 
         let workspace = Workspace(path: path,
                                   name: project.name,
@@ -149,10 +166,22 @@ public class Generator: Generating {
 
     public func generateWorkspace(at path: AbsolutePath,
                                   workspaceFiles: [AbsolutePath]) throws -> AbsolutePath {
+        let signpost = Signpost(category: "Generator", identifier: "generateWorkspace", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let tuistConfig = try graphLoader.loadTuistConfig(path: path)
         try environmentLinter.lint(config: tuistConfig)
-        let (graph, workspace) = try graphLoader.loadWorkspace(path: path)
-        try graphLinter.lint(graph: graph).printAndThrowIfNeeded()
+
+        let (graph, workspace) = try Signpost.measure(category: "Generator", identifier: "loadGraph") {
+            try graphLoader.loadWorkspace(path: path)
+        }
+
+        try Signpost.measure(category: "Generator", identifier: "lintGraph") {
+            try graphLinter.lint(graph: graph).printAndThrowIfNeeded()
+        }
 
         let updatedWorkspace = workspace
             .merging(projects: graph.projectPaths)

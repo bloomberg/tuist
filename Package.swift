@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "tuist",
-    platforms: [.macOS(.v10_11)],
+    platforms: [.macOS(.v10_14)],
     products: [
         .executable(name: "tuist", targets: ["tuist"]),
         .executable(name: "tuistenv", targets: ["tuistenv"]),
