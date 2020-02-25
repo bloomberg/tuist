@@ -79,6 +79,11 @@ final class WorkspaceGenerator: WorkspaceGenerating {
     // MARK: - WorkspaceGenerating
 
     func generate(workspace: Workspace, path: AbsolutePath, graph: Graph) throws -> WorkspaceDescriptor {
+        let signpost = Signpost(category: "WorkspaceGenerator", identifier: "generate", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
         let workspaceName = "\(graph.name).xcworkspace"
 
         logger.notice("Generating workspace \(workspaceName)", metadata: .section)

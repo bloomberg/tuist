@@ -148,6 +148,11 @@ public class ManifestLoader: ManifestLoading {
     // MARK: - Private
 
     private func loadManifest<T: Decodable>(_ manifest: Manifest, at path: AbsolutePath) throws -> T {
+        let signpost = Signpost(category: "ManifestLoader", identifier: "loadManifest", label: "\(path.basename) (\(manifest.fileName))")
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
         var fileNames = [manifest.fileName]
         if let deprecatedFileName = manifest.deprecatedFileName {
             fileNames.insert(deprecatedFileName, at: 0)
