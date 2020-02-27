@@ -98,14 +98,16 @@ final class WorkspaceGenerator: WorkspaceGenerating {
 
         /// Projects
 
-        var generatedProjects = [AbsolutePath: GeneratedProject]()
-        try graph.projects.forEach { project in
+
+        let tuples: [(AbsolutePath, GeneratedProject)] = try graph.projects.concurrentMap { project in
             let generatedProject = try projectGenerator.generate(project: project,
                                                                  graph: graph,
                                                                  sourceRootPath: project.path,
                                                                  xcodeprojPath: nil)
-            generatedProjects[project.path] = generatedProject
+            return (project.path, generatedProject)
         }
+
+        let generatedProjects: [AbsolutePath: GeneratedProject] = Dictionary(uniqueKeysWithValues: tuples)
 
         // Workspace structure
         let structure = workspaceStructureGenerator.generateStructure(path: path,

@@ -1,5 +1,6 @@
 import Basic
 import Foundation
+import TuistSupport
 
 /// Graph loader cache.
 public class GraphLoaderCache: GraphLoaderCaching {
@@ -8,13 +9,23 @@ public class GraphLoaderCache: GraphLoaderCaching {
 
     // MARK: - GraphLoaderCaching
 
+    @Atomic
     var tuistConfigs: [AbsolutePath: TuistConfig] = [:]
+
+    @Atomic
     public var projects: [AbsolutePath: Project] = [:]
+
+    @Atomic
     public var packages: [AbsolutePath: [PackageNode]] = [:]
+
+    @Atomic
     public var precompiledNodes: [AbsolutePath: PrecompiledNode] = [:]
+
+    @Atomic
     public var targetNodes: [AbsolutePath: [String: TargetNode]] = [:]
 
     /// Cached CocoaPods nodes
+    @Atomic
     public var cocoapodsNodes: [AbsolutePath: CocoaPodsNode] = [:]
 
     /// Returns, if it exists, the CocoaPods node at the given path.

@@ -53,8 +53,8 @@ public class GraphLoader: GraphLoading {
         let graphLoaderCache = GraphLoaderCache()
         let graphCircularDetector = GraphCircularDetector()
         let workspace = try modelLoader.loadWorkspace(at: path)
-
-        let projects = try workspace.projects.map { (projectPath) -> (AbsolutePath, Project) in
+        
+        let projects = try workspace.projects.concurrentMap { (projectPath) -> (AbsolutePath, Project) in
             try (projectPath, self.loadProject(at: projectPath, graphLoaderCache: graphLoaderCache, graphCircularDetector: graphCircularDetector))
         }
 
@@ -104,9 +104,8 @@ public class GraphLoader: GraphLoading {
             let project = try modelLoader.loadProject(at: path)
             graphLoaderCache.add(project: project)
 
-            for target in project.targets {
-                if graphLoaderCache.targetNode(path, name: target.name) != nil { continue }
-                _ = try loadTarget(name: target.name,
+            let _ = try project.targets.concurrentMap { target in
+                try loadTarget(name: target.name,
                                    path: path,
                                    graphLoaderCache: graphLoaderCache,
                                    graphCircularDetector: graphCircularDetector)

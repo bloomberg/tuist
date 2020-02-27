@@ -1,5 +1,6 @@
 import Basic
 import Foundation
+import TuistSupport
 
 struct GraphCircularDetectorNode: Hashable {
     let path: AbsolutePath
@@ -20,6 +21,7 @@ protocol GraphCircularDetecting: AnyObject {
 public final class GraphCircularDetector: GraphCircularDetecting {
     // MARK: - Attributes
 
+    @Atomic
     private var nodes = Set<Node>()
 
     // MARK: - Internal
