@@ -24,4 +24,10 @@ public struct Atomic<Value> {
             }
         }
     }
+
+    mutating public func modify<T>(_ access: (inout Value) -> T) -> T {
+        lock.withLock {
+            access(&value)
+        }
+    }
 }

@@ -27,8 +27,12 @@ public final class GraphCircularDetector: GraphCircularDetecting {
     // MARK: - Internal
 
     func start(from: GraphCircularDetectorNode, to: GraphCircularDetectorNode) {
-        let (_, fromNode) = nodes.insert(Node(element: from))
-        let (_, toNode) = nodes.insert(Node(element: to))
+        let (fromNode, toNode) = _nodes.modify { nodes -> (Node, Node) in
+            let (_, fromNode) = nodes.insert(Node(element: from))
+            let (_, toNode) = nodes.insert(Node(element: to))
+            return (fromNode, toNode)
+        }
+
         fromNode.add(dependency: toNode)
     }
 
