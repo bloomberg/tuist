@@ -171,18 +171,31 @@ public class Printer: Printing {
     }
 
     // MARK: - Fileprivate
-
+    private let lock = Lock()
     fileprivate func printStandardOutputLine(_ string: String) {
+        let string = string.appending("\n")
         if let data = string.data(using: .utf8) {
-            FileHandle.standardOutput.write(data)
+                writeOutput(data)
         }
-        FileHandle.standardOutput.write("\n".data(using: .utf8)!)
     }
 
     fileprivate func printStandardErrorLine(_ string: String) {
+        let string = string.appending("\n")
         if let data = string.data(using: .utf8) {
+            writeError(data)
+        }
+    }
+
+
+    private func writeOutput(_ data: Data) {
+        lock.withLock {
+            FileHandle.standardOutput.write(data)
+        }
+    }
+
+    private func writeError(_ data: Data) {
+        lock.withLock {
             FileHandle.standardError.write(data)
         }
-        FileHandle.standardError.write("\n".data(using: .utf8)!)
     }
 }
