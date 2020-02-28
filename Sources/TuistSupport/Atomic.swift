@@ -4,7 +4,7 @@ import Basic
 /// Ensures that writing and reading from property annotated with this property wrapper is thread safe
 /// Taken from https://www.onswiftwings.com/posts/atomic-property-wrapper/
 @propertyWrapper
-public struct Atomic<Value> {
+public class Atomic<Value> {
     private var value: Value
     private let lock = Lock()
 
@@ -25,7 +25,7 @@ public struct Atomic<Value> {
         }
     }
 
-    mutating public func modify<T>(_ access: (inout Value) -> T) -> T {
+    public func modify<T>(_ access: (inout Value) -> T) -> T {
         lock.withLock {
             access(&value)
         }

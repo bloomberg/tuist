@@ -28,6 +28,10 @@ public class GraphLoaderCache: GraphLoaderCaching {
     @Atomic
     public var cocoapodsNodes: [AbsolutePath: CocoaPodsNode] = [:]
 
+    /// Cached SwiftPM package nodes
+    @Atomic
+    public var packageNodes: [AbsolutePath: PackageProductNode] = [:]
+
     /// Returns, if it exists, the CocoaPods node at the given path.
     ///
     /// - Parameter path: Path to the directory where the Podfile is defined.
@@ -40,11 +44,10 @@ public class GraphLoaderCache: GraphLoaderCaching {
     ///
     /// - Parameter cocoapods: Node to be added to the cache.
     public func add(cocoapods: CocoaPodsNode) {
-        cocoapodsNodes[cocoapods.path] = cocoapods
+        _cocoapodsNodes.modify {
+            $0[cocoapods.path] = cocoapods
+        }
     }
-
-    /// Cached SwiftPM package nodes
-    public var packageNodes: [AbsolutePath: PackageProductNode] = [:]
 
     /// Returns, if it exists, the Package node at the given path.
     ///
@@ -58,7 +61,9 @@ public class GraphLoaderCache: GraphLoaderCaching {
     ///
     /// - Parameter package: Node to be added to the cache.
     public func add(package: PackageProductNode) {
-        packageNodes[package.path] = package
+        _packageNodes.modify {
+            $0[package.path] = package
+        }
     }
 
     public func tuistConfig(_ path: AbsolutePath) -> TuistConfig? {
@@ -66,7 +71,9 @@ public class GraphLoaderCache: GraphLoaderCaching {
     }
 
     public func add(tuistConfig: TuistConfig, path: AbsolutePath) {
-        tuistConfigs[path] = tuistConfig
+        _tuistConfigs.modify {
+            $0[path] = tuistConfig
+        }
     }
 
     public func project(_ path: AbsolutePath) -> Project? {
@@ -74,12 +81,19 @@ public class GraphLoaderCache: GraphLoaderCaching {
     }
 
     public func add(project: Project) {
-        projects[project.path] = project
-        packages[project.path] = project.packages.map { PackageNode(package: $0, path: project.path) }
+        _projects.modify {
+            $0[project.path] = project
+        }
+
+        _packages.modify {
+            $0[project.path] = project.packages.map { PackageNode(package: $0, path: project.path) }
+        }
     }
 
     public func add(precompiledNode: PrecompiledNode) {
-        precompiledNodes[precompiledNode.path] = precompiledNode
+        _precompiledNodes.modify {
+            $0[precompiledNode.path] = precompiledNode
+        }
     }
 
     public func precompiledNode(_ path: AbsolutePath) -> PrecompiledNode? {
@@ -87,10 +101,11 @@ public class GraphLoaderCache: GraphLoaderCaching {
     }
 
     public func add(targetNode: TargetNode) {
-        var projectTargets: [String: TargetNode]! = targetNodes[targetNode.path]
-        if projectTargets == nil { projectTargets = [:] }
-        projectTargets[targetNode.target.name] = targetNode
-        targetNodes[targetNode.path] = projectTargets
+        _targetNodes.modify {
+            var projectTargets: [String: TargetNode] = $0[targetNode.path, default: [:]]
+            projectTargets[targetNode.target.name] = targetNode
+            $0[targetNode.path] = projectTargets
+        }
     }
 
     public func targetNode(_ path: AbsolutePath, name: String) -> TargetNode? {

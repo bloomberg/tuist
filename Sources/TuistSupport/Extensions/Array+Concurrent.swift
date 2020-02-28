@@ -17,8 +17,8 @@ private final class ThreadSafe<A> {
         return queue.sync { _value }
     }
 
-    func atomically(_ transform: (inout A) -> ()) {
-        queue.sync {
+    func atomically(_ transform: @escaping (inout A) -> ()) {
+        queue.async {
             transform(&self._value)
         }
     }
@@ -41,6 +41,5 @@ public extension Array {
             }
         }
         return try result.value.map { try $0!.get() }
-
     }
 }

@@ -42,6 +42,8 @@ public class GraphLoader: GraphLoading {
             try self.loadTarget(name: target.name, path: path, graphLoaderCache: graphLoaderCache, graphCircularDetector: graphCircularDetector)
         }
 
+        try graphCircularDetector.complete()
+
         let graph = Graph(name: project.name,
                           entryPath: path,
                           cache: graphLoaderCache,
@@ -68,6 +70,8 @@ public class GraphLoader: GraphLoading {
                                     graphCircularDetector: graphCircularDetector)
             }
         }
+
+        try graphCircularDetector.complete()
 
         let graph = Graph(name: workspace.name,
                           entryPath: path,
@@ -146,8 +150,6 @@ public class GraphLoader: GraphLoading {
         }
 
         targetNode.dependencies = dependencies
-
-        try graphCircularDetector.complete()
 
         return targetNode
     }

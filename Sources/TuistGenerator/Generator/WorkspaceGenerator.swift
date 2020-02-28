@@ -98,7 +98,6 @@ final class WorkspaceGenerator: WorkspaceGenerating {
 
         /// Projects
 
-
         let tuples: [(AbsolutePath, GeneratedProject)] = try graph.projects.concurrentMap { project in
             let generatedProject = try projectGenerator.generate(project: project,
                                                                  graph: graph,
