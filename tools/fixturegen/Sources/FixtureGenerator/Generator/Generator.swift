@@ -60,27 +60,56 @@ class Generator {
         let manifestPath = path.appending(component: "Project.swift")
 
         let manifest = manifestTemplate.generate(projectName: name,
-                                                 targets: targets)
+                                                 targets: targets,
+                                                 additionalGlobs: config.additionalGlobs)
         try fileSystem.writeFileContents(manifestPath,
                                          bytes: ByteString(encodingAsUTF8: manifest))
     }
 
     private func initTarget(at path: AbsolutePath, name: String) throws {
         let targetPath = path.appending(component: name)
-
         try fileSystem.createDirectory(targetPath)
+
         try initSources(at: targetPath, targetName: name)
+        try initHeaders(at: targetPath)
+        try initResources(at: targetPath)
     }
 
     private func initSources(at path: AbsolutePath, targetName: String) throws {
         let sourcesPath = path.appending(component: "Sources")
-
         try fileSystem.createDirectory(sourcesPath)
+
         try (1 ... config.sources).forEach {
             let sourceName = "Source\($0).swift"
             let source = sourceTemplate.generate(frameworkName: targetName, number: $0)
             try fileSystem.writeFileContents(sourcesPath.appending(component: sourceName),
                                              bytes: ByteString(encodingAsUTF8: source))
+        }
+    }
+
+    private func initHeaders(at path: AbsolutePath) throws {
+        let publicHeadersPath = path.appending(components: "Sources", "Public")
+        let privateHeadersPath = path.appending(components: "Sources", "Private")
+        let projectHeadersPath = path.appending(components: "Sources", "Project")
+
+        try [publicHeadersPath, privateHeadersPath, projectHeadersPath].forEach { headersPath in
+            let headers = (1 ... config.headers).map { "Header\($0).h" }
+            try generateEmptyFiles(at: headersPath, names: headers)
+        }
+    }
+
+    private func initResources(at path: AbsolutePath) throws {
+        let resourcesPath = path.appending(component: "Resources")
+        let resources = (1 ... config.resources).map { "Resource\($0).txt" }
+        try generateEmptyFiles(at: resourcesPath, names: resources)
+    }
+
+    private func generateEmptyFiles(at path: AbsolutePath, names: [String]) throws {
+        try fileSystem.createDirectory(path)
+        try names.forEach { name in
+            let contents = ""
+            try fileSystem.writeFileContents(path.appending(component: name),
+                                             bytes: ByteString(encodingAsUTF8: contents))
         }
     }
 }

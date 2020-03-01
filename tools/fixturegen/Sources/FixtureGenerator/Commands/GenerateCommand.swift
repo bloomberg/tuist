@@ -11,6 +11,9 @@ final class GenerateCommand {
     private let projectsArgument: OptionArgument<Int>
     private let targetsArgument: OptionArgument<Int>
     private let sourcesArgument: OptionArgument<Int>
+    private let headersArgument: OptionArgument<Int>
+    private let resourcesArgument: OptionArgument<Int>
+    private let globsArgument: OptionArgument<Int>
 
     private let fileSystem: FileSystem
 
@@ -34,6 +37,18 @@ final class GenerateCommand {
                                      shortName: "-s",
                                      kind: Int.self,
                                      usage: "Number of sources to generate within each target.")
+        headersArgument = parser.add(option: "--headers",
+                                     shortName: "-h",
+                                     kind: Int.self,
+                                     usage: "Number of headers to generate within each target.")
+        resourcesArgument = parser.add(option: "--resources",
+                                       shortName: "-r",
+                                       kind: Int.self,
+                                       usage: "Number of resources to generate within each target.")
+        globsArgument = parser.add(option: "--globs",
+                                   shortName: "-g",
+                                   kind: Int.self,
+                                   usage: "Number of additional glob patterns to include within manifes.")
     }
 
     func run(with arguments: ArgumentParser.Result) throws {
@@ -43,8 +58,16 @@ final class GenerateCommand {
         let projects = arguments.get(projectsArgument) ?? defaultConfig.projects
         let targets = arguments.get(targetsArgument) ?? defaultConfig.targets
         let sources = arguments.get(sourcesArgument) ?? defaultConfig.sources
+        let headers = arguments.get(headersArgument) ?? defaultConfig.headers
+        let resources = arguments.get(resourcesArgument) ?? defaultConfig.resources
+        let additionalGlobs = arguments.get(globsArgument) ?? defaultConfig.additionalGlobs
 
-        let config = GeneratorConfig(projects: projects, targets: targets, sources: sources)
+        let config = GeneratorConfig(projects: projects,
+                                     targets: targets,
+                                     sources: sources,
+                                     headers: headers,
+                                     resources: resources,
+                                     additionalGlobs: additionalGlobs)
         let generator = Generator(fileSystem: fileSystem, config: config)
 
         try generator.generate(at: path)
