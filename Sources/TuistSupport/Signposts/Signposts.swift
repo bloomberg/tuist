@@ -6,19 +6,28 @@ public class Signpost {
     private let label: String?
     private let log: OSLog
     private let signpostID: OSSignpostID
-    public init(category: StaticString, identifier: StaticString, label: String?) {
+    private let printResults: Bool
+    private var startTime: Date?
+    public init(category: StaticString, identifier: StaticString, label: String?, print: Bool = false) {
         self.identifier = identifier
         self.label = label
+        printResults = print
         log = OSLog(subsystem: "io.tuist", category: "\(category)")
         signpostID = OSSignpostID(log: log)
     }
 
     public func begin() {
+        startTime = Date()
         Signpost.createSignPost(.begin, log: log, name: identifier, signpostID: signpostID, label: label)
     }
 
     public func end() {
         Signpost.createSignPost(.end, log: log, name: identifier, signpostID: signpostID, label: label)
+        guard printResults, let start = startTime else {
+            return
+        }
+        let interval = Date().timeIntervalSince(start)
+        print(">> \(identifier) = \(interval)")
     }
 
     public static func measure<T>(category: StaticString,

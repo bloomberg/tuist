@@ -78,6 +78,12 @@ final class LinkGenerator: LinkGenerating {
                        path: AbsolutePath,
                        sourceRootPath: AbsolutePath,
                        graph: Graph) throws {
+        let signpost = Signpost(category: "LinkGenerator", identifier: "generateLinks", label: "\(path.basename) > \(target.name)")
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let embeddableFrameworks = try graph.embeddableFrameworks(path: path, name: target.name)
         let linkableModules = try graph.linkableDependencies(path: path, name: target.name)
 

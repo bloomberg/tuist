@@ -63,6 +63,12 @@ final class BuildPhaseGenerator: BuildPhaseGenerating {
                              fileElements: ProjectFileElements,
                              pbxproj: PBXProj,
                              sourceRootPath _: AbsolutePath) throws {
+        let signpost = Signpost(category: "BuildPhaseGenerator", identifier: "generateBuildPhases", label: "\(path.basename) > \(target.name)")
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         if let headers = target.headers {
             try generateHeadersBuildPhase(headers: headers,
                                           pbxTarget: pbxTarget,

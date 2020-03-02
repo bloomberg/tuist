@@ -38,6 +38,12 @@ final class ConfigGenerator: ConfigGenerating {
     func generateProjectConfig(project: Project,
                                pbxproj: PBXProj,
                                fileElements: ProjectFileElements) throws -> XCConfigurationList {
+        let signpost = Signpost(category: "ConfigGenerator", identifier: "generateProjectConfig", label: project.name)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         /// Configuration list
         let defaultConfiguration = project.settings.defaultReleaseBuildConfiguration()
             ?? project.settings.defaultDebugBuildConfiguration()
@@ -65,6 +71,12 @@ final class ConfigGenerator: ConfigGenerating {
                               fileElements: ProjectFileElements,
                               graph: Graph,
                               sourceRootPath: AbsolutePath) throws {
+        let signpost = Signpost(category: "ConfigGenerator", identifier: "generateTargetConfig", label: "\(sourceRootPath.basename) > \(target.name)")
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         let defaultConfiguration = projectSettings.defaultReleaseBuildConfiguration()
             ?? projectSettings.defaultDebugBuildConfiguration()
         let configurationList = XCConfigurationList(buildConfigurations: [],

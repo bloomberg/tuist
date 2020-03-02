@@ -48,6 +48,12 @@ class ProjectFileElements {
                               groups: ProjectGroups,
                               pbxproj: PBXProj,
                               sourceRootPath: AbsolutePath) throws {
+        let signpost = Signpost(category: "ProjectFileElements", identifier: "generateProjectFiles", label: project.name)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
+
         var files = Set<GroupFileElement>()
 
         try project.targets.forEach { target in
