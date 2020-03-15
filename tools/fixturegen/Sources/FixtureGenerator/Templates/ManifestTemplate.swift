@@ -1,6 +1,6 @@
 import Foundation
 
-typealias ProjectTargetDependency = (target: String, path: String)
+typealias ProjectIndex = (index: Int, total: Int)
 
 class ManifestTemplate {
     private let generateDependencies: Bool
@@ -37,7 +37,7 @@ class ManifestTemplate {
             Target(
                 name: "{TargetName}",
                 platform: .iOS,
-                product: .framework,
+                product: {TargetProductType},
                 bundleId: "io.tuist.{TargetName}",
                 infoPlist: .default,
                 sources: [
@@ -57,8 +57,12 @@ class ManifestTemplate {
             ])
     """
 
-    private let targetDependenciesTemplate = """
+    private let targetProjectDependenciesTemplate = """
                    .project(target: "{TargetDependencyTarget}", path: "{TargetDependencyPath}")
+    """
+
+    private let targetDependenciesTemplate = """
+                    .target(name: "{TargetDependencyTarget}")
     """
 
     private let additionalSourcesGlobTemplate = """
@@ -72,15 +76,17 @@ class ManifestTemplate {
     }
 
     func generate(projectName: String,
+                  appTargets: [String],
                   targets: [String],
-                  index: Int,
-                  remainingProjects: Int,
+                  testTargets: [String],
+                  projectIndex: ProjectIndex,
                   additionalGlobs: Int) -> String {
         projectTemplate
             .replacingOccurrences(of: "{ProjectName}", with: projectName)
-            .replacingOccurrences(of: "{Targets}", with: generate(targets: targets,
-                                                                  projectIndex: index,
-                                                                  remainingProjects: remainingProjects,
+            .replacingOccurrences(of: "{Targets}", with: generate(appTargets: appTargets,
+                                                                  targets: targets,
+                                                                  testTargets: testTargets,
+                                                                  projectIndex: projectIndex,
                                                                   additionalGlobs: additionalGlobs))
     }
 
@@ -90,35 +96,70 @@ class ManifestTemplate {
         }.joined(separator: ",\n")
     }
 
-    private func generate(targets: [String],
-                          projectIndex: Int,
-                          remainingProjects: Int,
+    private func generate(appTargets: [String],
+                          targets: [String],
+                          testTargets: [String],
+                          projectIndex: ProjectIndex,
                           additionalGlobs: Int) -> String {
-        "\n" + targets.map {
-            targetTemplate
-                .replacingOccurrences(of: "{AdditionalSourcesGlobs}", with: generate(additionalGlobs: additionalGlobs))
-                .replacingOccurrences(of: "{TargetName}", with: $0)
-                .replacingOccurrences(of: "{TargetDependencies}", with: generate(targetDependencies: targetDependencies(targetName: $0, projectIndex: projectIndex, remainingProjects: remainingProjects)))
-        }.joined(separator: ",\n")
+        let frameworkTargets = targets.map {
+            genertate(target: $0,
+                      product: ".framework",
+                      additionalGlobs: additionalGlobs,
+                      targetDependencies: targetProjectDependencies(targetName: $0,
+                                                                    projectIndex: projectIndex))
+        }
+
+        let appTargets = appTargets.map {
+            genertate(target: $0,
+                      product: ".app",
+                      additionalGlobs: additionalGlobs,
+                      targetDependencies: targetDependencies(dependenctTargets: targets))
+        }
+
+        let testTargets = testTargets.map {
+            genertate(target: $0,
+                      product: ".unitTests",
+                      additionalGlobs: additionalGlobs,
+                      targetDependencies: targetDependencies(dependenctTargets: targets))
+        }
+
+        return "\n" +
+            (appTargets + frameworkTargets + testTargets)
+            .joined(separator: ",\n")
     }
 
-    private func targetDependencies(targetName: String,
-                                    projectIndex: Int,
-                                    remainingProjects: Int) -> [ProjectTargetDependency] {
+    private func genertate(target: String,
+                           product: String,
+                           additionalGlobs: Int,
+                           targetDependencies: [String]) -> String {
+        targetTemplate
+            .replacingOccurrences(of: "{TargetName}", with: target)
+            .replacingOccurrences(of: "{TargetProductType}", with: product)
+            .replacingOccurrences(of: "{AdditionalSourcesGlobs}", with: generate(additionalGlobs: additionalGlobs))
+            .replacingOccurrences(of: "{TargetDependencies}", with: generate(targetDependencies: targetDependencies))
+    }
+
+    private func targetProjectDependencies(targetName: String,
+                                           projectIndex: ProjectIndex) -> [String] {
         guard generateDependencies else {
             return []
         }
-        return (projectIndex + 1 ..< remainingProjects + projectIndex).map {
-            (target: targetName, path: "../Project\($0 + 1)")
+        return (projectIndex.index + 1 ..< projectIndex.total).map {
+            targetProjectDependenciesTemplate
+                .replacingOccurrences(of: "{TargetDependencyTarget}", with: targetName)
+                .replacingOccurrences(of: "{TargetDependencyPath}", with: "../Project\($0 + 1)")
         }
     }
 
-    private func generate(targetDependencies: [ProjectTargetDependency]) -> String {
-        "\n" + targetDependencies.map {
+    private func targetDependencies(dependenctTargets: [String]) -> [String] {
+        dependenctTargets.map {
             targetDependenciesTemplate
-                .replacingOccurrences(of: "{TargetDependencyTarget}", with: $0.target)
-                .replacingOccurrences(of: "{TargetDependencyPath}", with: $0.path)
-        }.joined(separator: ",\n")
+                .replacingOccurrences(of: "{TargetDependencyTarget}", with: $0)
+        }
+    }
+
+    private func generate(targetDependencies: [String]) -> String {
+        "\n" + targetDependencies.joined(separator: ",\n")
     }
 
     private func generate(additionalGlobs: Int) -> String {
