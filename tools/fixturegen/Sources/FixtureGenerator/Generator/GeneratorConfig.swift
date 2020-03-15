@@ -7,6 +7,7 @@ struct GeneratorConfig {
     var headers: Int
     var resources: Int
     var additionalGlobs: Int
+    var dependencies: Bool
 }
 
 extension GeneratorConfig {
@@ -16,6 +17,7 @@ extension GeneratorConfig {
                         sources: 50,
                         headers: 20,
                         resources: 20,
-                        additionalGlobs: 0)
+                        additionalGlobs: 0,
+                        dependencies: false)
     }
 }

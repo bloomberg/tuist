@@ -14,6 +14,7 @@ final class GenerateCommand {
     private let headersArgument: OptionArgument<Int>
     private let resourcesArgument: OptionArgument<Int>
     private let globsArgument: OptionArgument<Int>
+    private let dependenciesArgument: OptionArgument<Bool>
 
     private let fileSystem: FileSystem
 
@@ -49,6 +50,9 @@ final class GenerateCommand {
                                    shortName: "-g",
                                    kind: Int.self,
                                    usage: "Number of additional glob patterns to include within manifes.")
+        dependenciesArgument = parser.add(option: "--dependencies",
+                                          kind: Bool.self,
+                                          usage: "Include dependencies in generated manifests.")
     }
 
     func run(with arguments: ArgumentParser.Result) throws {
@@ -61,13 +65,15 @@ final class GenerateCommand {
         let headers = arguments.get(headersArgument) ?? defaultConfig.headers
         let resources = arguments.get(resourcesArgument) ?? defaultConfig.resources
         let additionalGlobs = arguments.get(globsArgument) ?? defaultConfig.additionalGlobs
+        let dependencies = arguments.get(dependenciesArgument) ?? defaultConfig.dependencies
 
         let config = GeneratorConfig(projects: projects,
                                      targets: targets,
                                      sources: sources,
                                      headers: headers,
                                      resources: resources,
-                                     additionalGlobs: additionalGlobs)
+                                     additionalGlobs: additionalGlobs,
+                                     dependencies: dependencies)
         let generator = Generator(fileSystem: fileSystem, config: config)
 
         try generator.generate(at: path)

@@ -12,7 +12,7 @@ class Generator {
         self.config = config
 
         sourceTemplate = SourceTemplate()
-        manifestTemplate = ManifestTemplate()
+        manifestTemplate = ManifestTemplate(generateDependencies: config.dependencies)
     }
 
     func generate(at path: AbsolutePath) throws {
@@ -24,9 +24,11 @@ class Generator {
                                   name: "Workspace",
                                   projects: projects)
 
-        try projects.forEach {
+        try projects.enumerated().forEach {
             try initProject(at: rootPath,
-                            name: $0)
+                            name: $0.element,
+                            index: $0.offset,
+                            remainingProjects: projects.count - $0.offset)
         }
     }
 
@@ -42,12 +44,17 @@ class Generator {
     }
 
     private func initProject(at path: AbsolutePath,
-                             name: String) throws {
+                             name: String,
+                             index: Int,
+                             remainingProjects: Int) throws {
         let projectPath = path.appending(component: name)
         let targets = (1 ... config.targets).map { "Target\($0)" }
 
         try fileSystem.createDirectory(projectPath)
-        try initProjectManifest(at: projectPath, name: name, targets: targets)
+        try initProjectManifest(at: projectPath, name: name,
+                                index: index,
+                                remainingProjects: remainingProjects,
+                                targets: targets)
 
         try targets.forEach {
             try initTarget(at: projectPath, name: $0)
@@ -56,11 +63,15 @@ class Generator {
 
     private func initProjectManifest(at path: AbsolutePath,
                                      name: String,
+                                     index: Int,
+                                     remainingProjects: Int,
                                      targets: [String]) throws {
         let manifestPath = path.appending(component: "Project.swift")
 
         let manifest = manifestTemplate.generate(projectName: name,
                                                  targets: targets,
+                                                 index: index,
+                                                 remainingProjects: remainingProjects,
                                                  additionalGlobs: config.additionalGlobs)
         try fileSystem.writeFileContents(manifestPath,
                                          bytes: ByteString(encodingAsUTF8: manifest))
