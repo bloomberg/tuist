@@ -55,6 +55,11 @@ public class GraphLoader: GraphLoading {
     // MARK: - GraphLoading
 
     public func loadProject(path: AbsolutePath) throws -> (Graph, Project) {
+        let signpost = Signpost(category: "GraphLoader", identifier: "loadProject", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
         let graphLoaderCache = GraphLoaderCache()
         let graphCircularDetector = GraphCircularDetector()
 
@@ -72,6 +77,11 @@ public class GraphLoader: GraphLoading {
     }
 
     public func loadWorkspace(path: AbsolutePath) throws -> (Graph, Workspace) {
+        let signpost = Signpost(category: "GraphLoader", identifier: "loadWorkspace", label: path.basename)
+        signpost.begin()
+        defer {
+            signpost.end()
+        }
         let graphLoaderCache = GraphLoaderCache()
         let graphCircularDetector = GraphCircularDetector()
         let workspace = try modelLoader.loadWorkspace(at: path)
