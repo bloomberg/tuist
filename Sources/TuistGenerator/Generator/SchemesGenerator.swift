@@ -55,65 +55,12 @@ final class SchemesGenerator: SchemesGenerating {
     func generateProjectSchemes(project: Project,
                                 generatedProject: GeneratedProject,
                                 graph: Graph) throws -> [SchemeDescriptor] {
-        let customSchemes: [SchemeDescriptor] = try project.schemes.map { scheme in
+        try project.schemes.map { scheme in
             try generateScheme(scheme: scheme,
                                path: project.path,
                                graph: graph,
                                generatedProjects: [project.path: generatedProject])
         }
-
-        guard project.autogenerateSchemes else {
-            return customSchemes
-        }
-
-        let buildConfiguration = defaultDebugBuildConfigurationName(in: project)
-        let userDefinedSchemes = Set(project.schemes.map(\.name))
-        let defaultSchemeTargets = project.targets.filter { !userDefinedSchemes.contains($0.name) }
-        let defaultSchemes: [SchemeDescriptor] = try defaultSchemeTargets.map { target in
-            let scheme = createDefaultScheme(target: target, project: project, buildConfiguration: buildConfiguration, graph: graph)
-            return try generateScheme(scheme: scheme,
-                                      path: project.path,
-                                      graph: graph,
-                                      generatedProjects: [project.path: generatedProject])
-        }
-
-        return customSchemes + defaultSchemes
-    }
-
-    /// Wipes shared and user schemes at a workspace or project path. This is needed
-    /// currently to support the workspace scheme generation case where a workspace that
-    /// already exists on disk is being regenerated. Wiping the schemes directory prevents
-    /// older custom schemes from persisting after regeneration.
-    ///
-    /// - Parameter at: Path to the workspace or project.
-    func wipeSchemes(at path: AbsolutePath) throws {
-        let fileHandler = FileHandler.shared
-        let userPath = schemeDirectory(path: path, shared: false)
-        let sharedPath = schemeDirectory(path: path, shared: true)
-        if fileHandler.exists(userPath) { try fileHandler.delete(userPath) }
-        if fileHandler.exists(sharedPath) { try fileHandler.delete(sharedPath) }
-    }
-
-    func createDefaultScheme(target: Target, project: Project, buildConfiguration: String, graph: Graph) -> Scheme {
-        let targetReference = TargetReference(projectPath: project.path, name: target.name)
-
-        let testTargets: [TestableTarget]
-
-        if target.product.testsBundle {
-            testTargets = [TestableTarget(target: targetReference)]
-        } else {
-            testTargets = graph.testTargetsDependingOn(path: project.path, name: target.name)
-                .map { TargetReference(projectPath: $0.project.path, name: $0.target.name) }
-                .map { TestableTarget(target: $0) }
-        }
-
-        return Scheme(name: target.name,
-                      shared: true,
-                      buildAction: BuildAction(targets: [targetReference]),
-                      testAction: TestAction(targets: testTargets, configurationName: buildConfiguration),
-                      runAction: RunAction(configurationName: buildConfiguration,
-                                           executable: targetReference,
-                                           arguments: Arguments(environment: target.environment)))
     }
 
     /// Generate schemes for a project or workspace.
